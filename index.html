@@ -3,418 +3,677 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Analizador de Precios — Carnicerias</title>
+<title>Analizador de Precios — Carnicerias & Envasados</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Fraunces:ital,wght@0,300;0,600;1,300&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-:root{--bg:#F5F0E8;--surface:#FDFBF7;--ink:#1A1209;--ink-2:#5C4E35;--ink-3:#9C8A6E;--accent:#C84B2F;--accent-light:#F4E0DB;--green:#2D6A4F;--green-light:#D8EDDF;--gold:#B8860B;--gold-light:#FDF3C8;--border:#D9CEB8;--border-dark:#B8A88A;--max-w:860px}
+:root{--bg:#F5F0E8;--surface:#FDFBF7;--ink:#1A1209;--ink-2:#5C4E35;--ink-3:#9C8A6E;--accent:#C84B2F;--accent-light:#F4E0DB;--green:#2D6A4F;--green-light:#D8EDDF;--gold:#B8860B;--gold-light:#FDF3C8;--border:#D9CEB8;--border-dark:#B8A88A;--max-w:900px}
 body{background:var(--bg);color:var(--ink);font-family:'DM Mono',monospace;min-height:100vh;padding:0 1rem 4rem}
-header{max-width:var(--max-w);margin:0 auto;padding:3rem 0 2rem;border-bottom:1px solid var(--border-dark);display:flex;align-items:flex-end;justify-content:space-between;gap:1rem}
-.header-left h1{font-family:'Fraunces',serif;font-weight:600;font-size:clamp(2rem,5vw,3rem);letter-spacing:-.02em;line-height:1}
+header{max-width:var(--max-w);margin:0 auto;padding:2.5rem 0 1.5rem;border-bottom:1px solid var(--border-dark);display:flex;align-items:flex-end;justify-content:space-between;gap:1rem}
+.header-left h1{font-family:'Fraunces',serif;font-weight:600;font-size:clamp(1.8rem,4vw,2.6rem);letter-spacing:-.02em;line-height:1}
 .header-left h1 em{font-style:italic;font-weight:300;color:var(--accent)}
-.header-left p{margin-top:.5rem;font-size:.72rem;color:var(--ink-3);letter-spacing:.08em;text-transform:uppercase}
-.badge{font-size:.65rem;letter-spacing:.1em;text-transform:uppercase;padding:.3rem .7rem;border:1px solid var(--border-dark);color:var(--ink-2);border-radius:2px;white-space:nowrap}
+.header-left p{margin-top:.4rem;font-size:.68rem;color:var(--ink-3);letter-spacing:.08em;text-transform:uppercase}
+.badge{font-size:.62rem;letter-spacing:.1em;text-transform:uppercase;padding:.3rem .7rem;border:1px solid var(--border-dark);color:var(--ink-2);border-radius:2px;white-space:nowrap}
+
+/* Tabs */
+.tabs{max-width:var(--max-w);margin:0 auto;display:flex;gap:0;border-bottom:2px solid var(--border-dark);margin-top:2rem}
+.tab-btn{font-family:'DM Mono',monospace;font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;padding:.75rem 1.5rem;background:none;border:none;border-bottom:2px solid transparent;margin-bottom:-2px;cursor:pointer;color:var(--ink-3);transition:color .15s,border-color .15s}
+.tab-btn:hover{color:var(--ink)}
+.tab-btn.active{color:var(--ink);border-bottom-color:var(--accent);font-weight:500}
+.tab-panel{display:none}.tab-panel.active{display:block}
+
 main{max-width:var(--max-w);margin:0 auto}
-.upload-section{padding:2.5rem 0 2rem}
-.drop-zone{border:1.5px dashed var(--border-dark);border-radius:4px;background:var(--surface);padding:3.5rem 2rem;text-align:center;cursor:pointer;transition:border-color .2s,background .2s;position:relative}
+.section{padding:2rem 0 1.5rem}
+.drop-zone{border:1.5px dashed var(--border-dark);border-radius:4px;background:var(--surface);padding:3rem 2rem;text-align:center;cursor:pointer;transition:border-color .2s,background .2s;position:relative}
 .drop-zone:hover,.drop-zone.drag-over{border-color:var(--accent);background:#FDF9F5}
-.drop-zone input[type="file"]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
-.drop-icon{width:48px;height:48px;margin:0 auto 1rem;border:1.5px solid var(--border-dark);border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:1.4rem;background:var(--bg)}
-.drop-title{font-family:'Fraunces',serif;font-size:1.1rem;font-weight:600;margin-bottom:.4rem}
-.drop-sub{font-size:.72rem;color:var(--ink-3);letter-spacing:.05em}
-.status-bar{margin-top:1rem;padding:.75rem 1rem;border-radius:3px;font-size:.75rem;letter-spacing:.04em;border:1px solid;display:none;align-items:center;gap:.6rem}
+.drop-zone input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+.drop-icon{width:44px;height:44px;margin:0 auto .8rem;border:1.5px solid var(--border-dark);border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:1.3rem;background:var(--bg)}
+.drop-title{font-family:'Fraunces',serif;font-size:1rem;font-weight:600;margin-bottom:.35rem}
+.drop-sub{font-size:.68rem;color:var(--ink-3);letter-spacing:.05em}
+.status-bar{margin-top:.8rem;padding:.65rem 1rem;border-radius:3px;font-size:.72rem;letter-spacing:.04em;border:1px solid;display:none;align-items:center;gap:.6rem}
 .status-bar.show{display:flex}
 .status-bar.ok{background:var(--green-light);color:var(--green);border-color:#A8D5B5}
 .status-bar.err{background:var(--accent-light);color:var(--accent);border-color:#E8B4A8}
 .status-bar.info{background:var(--gold-light);color:var(--gold);border-color:#E8D48A}
 .status-dot{width:6px;height:6px;border-radius:50%;background:currentColor;flex-shrink:0}
-.section-label{font-size:.65rem;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-3);padding:.5rem 0;border-top:1px solid var(--border);margin-bottom:1rem;display:flex;align-items:center;justify-content:space-between}
+.section-label{font-size:.62rem;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-3);padding:.4rem 0;border-top:1px solid var(--border);margin-bottom:.9rem;display:flex;align-items:center;justify-content:space-between}
 .section-label span{color:var(--ink-2)}
-.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--border);border:1px solid var(--border);border-radius:3px;overflow:hidden;margin-bottom:2rem}
-.stat-card{background:var(--surface);padding:1rem 1.1rem}
-.stat-label{font-size:.62rem;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);margin-bottom:.3rem}
-.stat-val{font-family:'Fraunces',serif;font-size:1.6rem;font-weight:600;color:var(--ink);line-height:1}
+.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--border);border:1px solid var(--border);border-radius:3px;overflow:hidden;margin-bottom:1.5rem}
+.stat-card{background:var(--surface);padding:.9rem 1rem}
+.stat-label{font-size:.58rem;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);margin-bottom:.25rem}
+.stat-val{font-family:'Fraunces',serif;font-size:1.4rem;font-weight:600;color:var(--ink);line-height:1}
 .stat-val.red{color:var(--accent)}
-.table-wrap{overflow-x:auto;border:1px solid var(--border);border-radius:3px;background:var(--surface);margin-bottom:2rem}
-table{width:100%;border-collapse:collapse;font-size:.72rem}
+.table-wrap{overflow-x:auto;border:1px solid var(--border);border-radius:3px;background:var(--surface);margin-bottom:1.5rem}
+table{width:100%;border-collapse:collapse;font-size:.7rem}
 thead tr{background:var(--ink);color:var(--bg)}
-thead th{padding:.7rem .85rem;text-align:left;font-weight:500;letter-spacing:.06em;font-size:.62rem;text-transform:uppercase;white-space:nowrap}
+thead th{padding:.65rem .8rem;text-align:left;font-weight:500;letter-spacing:.06em;font-size:.6rem;text-transform:uppercase;white-space:nowrap}
 tbody tr{border-bottom:1px solid var(--border)}
 tbody tr:last-child{border-bottom:none}
 tbody tr:hover{background:#FAF6F0}
-td{padding:.65rem .85rem;vertical-align:middle}
+td{padding:.6rem .8rem;vertical-align:middle}
 td.corte{font-weight:500}
-.pill{display:inline-flex;align-items:center;gap:.3rem;font-size:.65rem;padding:.2rem .55rem;border-radius:2px;white-space:nowrap;font-weight:500}
+.pill{display:inline-flex;align-items:center;gap:.25rem;font-size:.62rem;padding:.18rem .5rem;border-radius:2px;white-space:nowrap;font-weight:500}
 .pill.max{background:var(--accent-light);color:var(--accent)}
 .pill.min{background:var(--green-light);color:var(--green)}
-.missing{font-size:.62rem;color:var(--ink-3);max-width:200px;line-height:1.4}
-.all-ok{color:var(--green);font-size:.62rem}
-.download-section{padding:.5rem 0 2rem}
-.btn-download{display:flex;align-items:center;justify-content:center;gap:.7rem;width:100%;padding:1rem;background:var(--ink);color:var(--bg);border:none;border-radius:3px;font-family:'DM Mono',monospace;font-size:.8rem;letter-spacing:.06em;cursor:pointer;transition:background .15s}
+.pill.grp{background:#EDE9E0;color:var(--ink-2)}
+.missing{font-size:.6rem;color:var(--ink-3);max-width:180px;line-height:1.4}
+.all-ok{color:var(--green);font-size:.6rem}
+.btn-download{display:flex;align-items:center;justify-content:center;gap:.7rem;width:100%;padding:.9rem;background:var(--ink);color:var(--bg);border:none;border-radius:3px;font-family:'DM Mono',monospace;font-size:.78rem;letter-spacing:.06em;cursor:pointer;transition:background .15s;margin-bottom:2rem}
 .btn-download:hover:not(:disabled){background:#2D2315}
 .btn-download:disabled{opacity:.35;cursor:not-allowed}
 .hidden{display:none!important}
-footer{max-width:var(--max-w);margin:3rem auto 0;padding-top:1.5rem;border-top:1px solid var(--border);font-size:.65rem;color:var(--ink-3);letter-spacing:.06em;display:flex;justify-content:space-between}
+footer{max-width:var(--max-w);margin:3rem auto 0;padding-top:1.5rem;border-top:1px solid var(--border);font-size:.62rem;color:var(--ink-3);letter-spacing:.06em;display:flex;justify-content:space-between}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
 .pulsing{animation:pulse 1.2s infinite}
 </style>
 </head>
 <body>
+
 <header>
   <div class="header-left">
-    <h1>Análisis de<br><em>Precios</em></h1>
-    <p>Automatizador de informes — Carnicerias</p>
+    <h1>Análisis de <em>Precios</em></h1>
+    <p>Automatizador de informes semanales</p>
   </div>
   <div class="badge">xlsx → análisis</div>
 </header>
+
+<!-- TABS -->
+<div class="tabs">
+  <button class="tab-btn active" onclick="switchTab('carn',this)">🥩 Carnicerias</button>
+  <button class="tab-btn" onclick="switchTab('env',this)">📦 Envasados</button>
+</div>
+
 <main>
-  <section class="upload-section">
-    <div class="section-label"><span>01 — Cargar archivo</span></div>
-    <div class="drop-zone" id="dropZone">
-      <input type="file" id="fileInput" accept=".xlsx">
+
+<!-- ═══════════════════════════════════════════════════════ TAB CARNICERIAS -->
+<div class="tab-panel active" id="tab-carn">
+
+  <div class="section">
+    <div class="section-label"><span>01 — Cargar archivo de Carnicerias</span></div>
+    <div class="drop-zone" id="dz-carn">
+      <input type="file" id="fi-carn" accept=".xlsx">
       <div class="drop-icon">📂</div>
-      <div class="drop-title">Subí tu Excel de Carnicerias</div>
-      <div class="drop-sub">Arrastrá el archivo o hacé clic · .xlsx</div>
+      <div class="drop-title">Subí el Excel de Carnicerias</div>
+      <div class="drop-sub">Debe contener la hoja "Precio de Carnicerias" · .xlsx</div>
     </div>
-    <div class="status-bar" id="statusBar">
-      <div class="status-dot"></div>
-      <span id="statusMsg"></span>
-    </div>
-  </section>
-  <section id="statsSection" class="hidden">
-    <div class="section-label"><span>02 — Resumen</span><span id="periodoLabel"></span></div>
+    <div class="status-bar" id="sb-carn"><div class="status-dot"></div><span id="sm-carn"></span></div>
+  </div>
+
+  <div id="stats-carn" class="hidden">
+    <div class="section-label"><span>02 — Resumen</span><span id="periodo-carn"></span></div>
     <div class="stats-row">
-      <div class="stat-card"><div class="stat-label">Cortes</div><div class="stat-val" id="statCortes">—</div></div>
-      <div class="stat-card"><div class="stat-label">Locales</div><div class="stat-val" id="statLocales">—</div></div>
-      <div class="stat-card"><div class="stat-label">Mayor dif.</div><div class="stat-val red" id="statMaxDiff">—</div></div>
-      <div class="stat-card"><div class="stat-label">Corte volátil</div><div class="stat-val red" id="statVolatil" style="font-size:.85rem;padding-top:.3rem">—</div></div>
+      <div class="stat-card"><div class="stat-label">Cortes</div><div class="stat-val" id="sc-carn">—</div></div>
+      <div class="stat-card"><div class="stat-label">Locales</div><div class="stat-val" id="sl-carn">—</div></div>
+      <div class="stat-card"><div class="stat-label">Mayor dif.</div><div class="stat-val red" id="sd-carn">—</div></div>
+      <div class="stat-card"><div class="stat-label">Corte volátil</div><div class="stat-val red" id="sv-carn" style="font-size:.8rem;padding-top:.25rem">—</div></div>
     </div>
-  </section>
-  <section id="previewSection" class="hidden">
-    <div class="section-label"><span>03 — Vista previa</span><span id="rowCount"></span></div>
+  </div>
+
+  <div id="preview-carn" class="hidden">
+    <div class="section-label"><span>03 — Vista previa</span><span id="rc-carn"></span></div>
     <div class="table-wrap">
-      <table>
-        <thead><tr><th>Corte</th><th>Local máx.</th><th>Precio máx.</th><th>Local mín.</th><th>Precio mín.</th><th>Diferencia</th><th>Sin datos</th></tr></thead>
-        <tbody id="previewBody"></tbody>
-      </table>
+      <table><thead><tr><th>Corte</th><th>Local máx.</th><th>Precio máx.</th><th>Local mín.</th><th>Precio mín.</th><th>Diferencia</th><th>Sin datos</th></tr></thead>
+      <tbody id="pb-carn"></tbody></table>
     </div>
-  </section>
-  <section id="downloadSection" class="download-section hidden">
+  </div>
+
+  <div id="dl-carn" class="hidden">
     <div class="section-label"><span>04 — Exportar</span></div>
-    <button class="btn-download" id="downloadBtn" onclick="generateExcel()">
-      <span>↓</span><span id="downloadBtnText">Generar y descargar Excel con formato del informe</span>
+    <button class="btn-download" id="btn-carn" onclick="generateCarn()">
+      <span>↓</span><span id="btxt-carn">Generar y descargar Excel con formato del informe</span>
     </button>
-  </section>
+  </div>
+
+</div><!-- /tab-carn -->
+
+<!-- ═══════════════════════════════════════════════════════ TAB ENVASADOS -->
+<div class="tab-panel" id="tab-env">
+
+  <div class="section">
+    <div class="section-label"><span>01 — Cargar archivo de Envasados</span></div>
+    <div class="drop-zone" id="dz-env">
+      <input type="file" id="fi-env" accept=".xlsx">
+      <div class="drop-icon">📂</div>
+      <div class="drop-title">Subí el Excel de Envasados</div>
+      <div class="drop-sub">Debe contener la hoja "Precio de Cortes Envasados" · .xlsx</div>
+    </div>
+    <div class="status-bar" id="sb-env"><div class="status-dot"></div><span id="sm-env"></span></div>
+  </div>
+
+  <div id="stats-env" class="hidden">
+    <div class="section-label"><span>02 — Resumen</span><span id="periodo-env"></span></div>
+    <div class="stats-row">
+      <div class="stat-card"><div class="stat-label">Grupos</div><div class="stat-val" id="sc-env">—</div></div>
+      <div class="stat-card"><div class="stat-label">Cortes totales</div><div class="stat-val" id="sl-env">—</div></div>
+      <div class="stat-card"><div class="stat-label">Mayor dif.</div><div class="stat-val red" id="sd-env">—</div></div>
+      <div class="stat-card"><div class="stat-label">Grupo volátil</div><div class="stat-val red" id="sv-env" style="font-size:.8rem;padding-top:.25rem">—</div></div>
+    </div>
+  </div>
+
+  <div id="preview-env" class="hidden">
+    <div class="section-label"><span>03 — Vista previa (por grupo)</span><span id="rc-env"></span></div>
+    <div class="table-wrap">
+      <table><thead><tr><th>Grupo</th><th>Marca máx.</th><th>Corte máx.</th><th>Local</th><th>Precio máx.</th><th>Marca mín.</th><th>Corte mín.</th><th>Local</th><th>Precio mín.</th><th>Diferencia</th></tr></thead>
+      <tbody id="pb-env"></tbody></table>
+    </div>
+  </div>
+
+  <div id="dl-env" class="hidden">
+    <div class="section-label"><span>04 — Exportar</span></div>
+    <button class="btn-download" id="btn-env" onclick="generateEnv()">
+      <span>↓</span><span id="btxt-env">Generar y descargar Excel con formato del informe</span>
+    </button>
+  </div>
+
+</div><!-- /tab-env -->
+
 </main>
+
 <footer>
-  <span>Analizador Carnicerias v4.0</span>
+  <span>Analizador v4.1 — Carnicerias & Envasados</span>
   <span>Procesamiento local · ningún dato sale de tu equipo</span>
 </footer>
 
 <script>
-// ── State ──
-let G = { wb: null, analysis: [], locales: [], fileName: '', periodo: '' };
+// ══════════════════════════════════════════════════════════════════════
+// GLOBALS
+// ══════════════════════════════════════════════════════════════════════
+const GC = { wb:null, analysis:[], locales:[], fileName:'', periodo:'' }; // carnicerias
+const GE = { wb:null, groups:[],   locales:[], fileName:'', periodo:'', totalCortes:0 }; // envasados
 
-const $ = id => document.getElementById(id);
-const show = id => $(id).classList.remove('hidden');
-
-function setStatus(msg, type) {
-  const bar = $('statusBar');
-  bar.className = 'status-bar show ' + type;
-  $('statusMsg').textContent = msg;
+// ══════════════════════════════════════════════════════════════════════
+// TABS
+// ══════════════════════════════════════════════════════════════════════
+function switchTab(id, btn) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('tab-' + id).classList.add('active');
 }
 
-// ── Drag & drop ──
-const dz = $('dropZone');
-dz.addEventListener('dragover', e => { e.preventDefault(); dz.classList.add('drag-over'); });
-dz.addEventListener('dragleave', () => dz.classList.remove('drag-over'));
-dz.addEventListener('drop', e => { e.preventDefault(); dz.classList.remove('drag-over'); handleFile(e.dataTransfer.files[0]); });
-$('fileInput').addEventListener('change', e => handleFile(e.target.files[0]));
+// ══════════════════════════════════════════════════════════════════════
+// SHARED UTILS
+// ══════════════════════════════════════════════════════════════════════
+const $  = id => document.getElementById(id);
+const show = id => $(id).classList.remove('hidden');
+function setStatus(pfx, msg, type) {
+  const bar = $('sb-'+pfx); bar.className='status-bar show '+type;
+  $('sm-'+pfx).textContent = msg;
+}
+function toNum(v) {
+  if (v===null||v===undefined||v===''||v==='-') return null;
+  const n = parseFloat(String(v).replace(/[^\d.]/g,''));
+  return (!isNaN(n)&&n>0&&n<1000000)?n:null;
+}
+function fmtNum(n){ return Math.round(n).toLocaleString('es-PY'); }
 
-function handleFile(file) {
-  if (!file || !file.name.endsWith('.xlsx')) { setStatus('El archivo debe ser .xlsx', 'err'); return; }
-  G.fileName = file.name.replace('.xlsx', '') + '_ANALIZADO.xlsx';
-  setStatus('Procesando…', 'info');
-  $('statusBar').classList.add('pulsing');
-  const reader = new FileReader();
-  reader.onload = e => {
-    try {
-      const wb = XLSX.read(new Uint8Array(e.target.result), { type: 'array' });
-      G.wb = wb;
-      const sheetName = wb.SheetNames.find(n => n.toLowerCase().includes('precio de carnicer'));
-      if (!sheetName) throw new Error('No se encontró la hoja "Precio de Carnicerias"');
-      const result = processSheet(wb.Sheets[sheetName]);
-      G.analysis = result.analysis;
-      G.locales  = result.locales;
-      G.periodo  = result.periodo;
-      $('statusBar').classList.remove('pulsing');
-      setStatus(`Archivo procesado — ${G.analysis.length} cortes encontrados`, 'ok');
-      renderStats(); renderTable();
-      show('statsSection'); show('previewSection'); show('downloadSection');
-    } catch(err) {
-      $('statusBar').classList.remove('pulsing');
-      setStatus('Error: ' + err.message, 'err');
+function setupDrop(pfx, handler) {
+  const dz=$('dz-'+pfx), fi=$('fi-'+pfx);
+  dz.addEventListener('dragover',e=>{e.preventDefault();dz.classList.add('drag-over');});
+  dz.addEventListener('dragleave',()=>dz.classList.remove('drag-over'));
+  dz.addEventListener('drop',e=>{e.preventDefault();dz.classList.remove('drag-over');handler(e.dataTransfer.files[0]);});
+  fi.addEventListener('change',e=>handler(e.target.files[0]));
+}
+
+function loadExcelJS() {
+  return new Promise((res,rej)=>{
+    if(window.ExcelJS){res();return;}
+    const s=document.createElement('script');
+    s.src='https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js';
+    s.onload=res; s.onerror=()=>rej(new Error('No se pudo cargar ExcelJS'));
+    document.head.appendChild(s);
+  });
+}
+
+function sheetToArray(ws) {
+  const range=XLSX.utils.decode_range(ws['!ref']||'A1:A1');
+  const rows=[];
+  for(let r=range.s.r;r<=range.e.r;r++){
+    const row=[];
+    for(let c=range.s.c;c<=range.e.c;c++){
+      const cell=ws[XLSX.utils.encode_cell({r,c})];
+      row.push(cell?cell.v:null);
+    }
+    rows.push(row);
+  }
+  return rows;
+}
+
+// ExcelJS style helpers
+function exFill(hex){return{type:'pattern',pattern:'solid',fgColor:{argb:'FF'+hex}};}
+function exFont(sz=10,bold=false,color='000000',name='Arial'){return{name,size:sz,bold,color:{argb:'FF'+color}};}
+function exAlign(h='center',v='middle',wrap=true){return{horizontal:h,vertical:v,wrapText:wrap};}
+function applyCell(cell,val,fillHex,fontCfg,alignCfg,numFmt){
+  cell.value=val;
+  if(fillHex) cell.fill=exFill(fillHex);
+  if(fontCfg) cell.font=fontCfg;
+  if(alignCfg) cell.alignment=alignCfg;
+  if(numFmt)  cell.numFmt=numFmt;
+}
+
+// ══════════════════════════════════════════════════════════════════════
+// ██████  CARNICERIAS
+// ══════════════════════════════════════════════════════════════════════
+setupDrop('carn', handleCarn);
+
+function handleCarn(file) {
+  if(!file||!file.name.endsWith('.xlsx')){setStatus('carn','El archivo debe ser .xlsx','err');return;}
+  GC.fileName = file.name.replace('.xlsx','')+'_ANALIZADO.xlsx';
+  setStatus('carn','Procesando…','info');
+  $('sb-carn').classList.add('pulsing');
+  const reader=new FileReader();
+  reader.onload=e=>{
+    try{
+      const wb=XLSX.read(new Uint8Array(e.target.result),{type:'array'});
+      GC.wb=wb;
+      const sn=wb.SheetNames.find(n=>n.toLowerCase().includes('precio de carnicer'));
+      if(!sn) throw new Error('No se encontró la hoja "Precio de Carnicerias"');
+      const r=processCarnSheet(wb.Sheets[sn]);
+      GC.analysis=r.analysis; GC.locales=r.locales; GC.periodo=r.periodo;
+      $('sb-carn').classList.remove('pulsing');
+      setStatus('carn',`Procesado — ${GC.analysis.length} cortes encontrados`,'ok');
+      renderCarnStats(); renderCarnTable();
+      show('stats-carn'); show('preview-carn'); show('dl-carn');
+    }catch(err){
+      $('sb-carn').classList.remove('pulsing');
+      setStatus('carn','Error: '+err.message,'err');
     }
   };
   reader.readAsArrayBuffer(file);
 }
 
-// ── Sheet processing ──
-function processSheet(ws) {
-  const rows = XLSX.utils.sheet_to_json(ws, { header: 1, defval: null });
-  let periodo = '', headerRowIdx = -1, headerCols = {};
-  for (let i = 0; i < rows.length; i++) {
-    const row = rows[i];
-    if (!row) continue;
-    const first = row[0] ? String(row[0]).trim().toUpperCase() : '';
-    if (first.includes('PRECIO DE CORTES') || first.includes('PRECIO DE CARNICER')) periodo = String(row[0]).trim();
-    if (first === 'CORTE' || first === 'CADENA') {
-      headerRowIdx = i;
-      let boxCount = 0;
-      row.forEach((h, idx) => {
-        if (!h) return;
-        const k = String(h).trim().toUpperCase();
-        if (k === 'OTRAS CARNES' || k === 'PRECIO') return;
-        if (k === 'BOX') { boxCount++; headerCols['BOX' + boxCount] = idx; }
-        else if (k === 'CORTE' || k === 'CADENA') headerCols['CORTE'] = idx;
-        else headerCols[k] = idx;
-      });
-      break;
+function processCarnSheet(ws) {
+  const rows=XLSX.utils.sheet_to_json(ws,{header:1,defval:null});
+  let periodo='',hIdx=-1,hCols={};
+  for(let i=0;i<rows.length;i++){
+    const row=rows[i]; if(!row) continue;
+    const first=row[0]?String(row[0]).trim().toUpperCase():'';
+    if(first.includes('PRECIO DE CORTES')||first.includes('PRECIO DE CARNICER')) periodo=String(row[0]).trim();
+    if(first==='CORTE'||first==='CADENA'){
+      hIdx=i; let boxCnt=0;
+      row.forEach((h,idx)=>{
+        if(!h) return; const k=String(h).trim().toUpperCase();
+        if(k==='OTRAS CARNES'||k==='PRECIO') return;
+        if(k==='BOX'){boxCnt++;hCols['BOX'+boxCnt]=idx;}
+        else if(k==='CORTE'||k==='CADENA') hCols['CORTE']=idx;
+        else hCols[k]=idx;
+      }); break;
     }
   }
-  if (headerRowIdx < 0) throw new Error('No se encontró la fila de encabezado (CORTE / CADENA)');
-  const SKIP = new Set(['CORTE','CADENA','OTRAS CARNES','PRECIO','BOX1','BOX2']);
-  const locales = Object.keys(headerCols).filter(k => !SKIP.has(k));
-  if (headerCols['BOX1']) locales.push('BOX');
-  const lomo_seen = { vac: false };
-  const analysis = [];
-  for (let i = headerRowIdx + 1; i < rows.length; i++) {
-    const row = rows[i];
-    if (!row || !row[headerCols['CORTE']]) continue;
-    let corte = String(row[headerCols['CORTE']]).trim();
-    if (!corte || corte === 'nan') continue;
-    if (corte.toUpperCase() === 'LOMO') {
-      if (!lomo_seen.vac) lomo_seen.vac = true;
-      else corte = 'LOMO DE CERDO';
-    }
-    const prices = {};
-    locales.forEach(loc => {
+  if(hIdx<0) throw new Error('No se encontró la fila de encabezado');
+  const SKIP=new Set(['CORTE','CADENA','OTRAS CARNES','PRECIO','BOX1','BOX2']);
+  const locales=Object.keys(hCols).filter(k=>!SKIP.has(k));
+  if(hCols['BOX1']) locales.push('BOX');
+  const lomo={vac:false}; const analysis=[];
+  for(let i=hIdx+1;i<rows.length;i++){
+    const row=rows[i]; if(!row||!row[hCols['CORTE']]) continue;
+    let corte=String(row[hCols['CORTE']]).trim();
+    if(!corte||corte==='nan') continue;
+    if(corte.toUpperCase()==='LOMO'){if(!lomo.vac) lomo.vac=true; else corte='LOMO DE CERDO';}
+    const prices={};
+    locales.forEach(loc=>{
       let val;
-      if (loc === 'BOX') {
-        const v1 = toNum(row[headerCols['BOX1']]);
-        const v2 = headerCols['BOX2'] != null ? toNum(row[headerCols['BOX2']]) : null;
-        const valid = [v1, v2].filter(x => x !== null);
-        val = valid.length ? valid.reduce((a,b)=>a+b)/valid.length : null;
-      } else {
-        val = toNum(row[headerCols[loc]]);
-      }
-      if (val !== null) prices[loc] = val;
+      if(loc==='BOX'){
+        const v1=toNum(row[hCols['BOX1']]);
+        const v2=hCols['BOX2']!=null?toNum(row[hCols['BOX2']]):null;
+        const vd=[v1,v2].filter(x=>x!==null);
+        val=vd.length?vd.reduce((a,b)=>a+b)/vd.length:null;
+      } else val=toNum(row[hCols[loc]]);
+      if(val!==null) prices[loc]=val;
     });
-    if (Object.keys(prices).length === 0) continue;
-    const maxLoc = Object.keys(prices).reduce((a,b)=>prices[a]>prices[b]?a:b);
-    const minLoc = Object.keys(prices).reduce((a,b)=>prices[a]<prices[b]?a:b);
-    const missing = locales.filter(l => !prices[l]);
-    analysis.push({ corte, maxLocal: maxLoc, maxPrice: prices[maxLoc], minLocal: minLoc, minPrice: prices[minLoc], diff: prices[maxLoc]-prices[minLoc], missing });
+    if(!Object.keys(prices).length) continue;
+    const maxL=Object.keys(prices).reduce((a,b)=>prices[a]>prices[b]?a:b);
+    const minL=Object.keys(prices).reduce((a,b)=>prices[a]<prices[b]?a:b);
+    analysis.push({corte,maxLocal:maxL,maxPrice:prices[maxL],minLocal:minL,minPrice:prices[minL],diff:prices[maxL]-prices[minL],missing:locales.filter(l=>!prices[l])});
   }
-  if (analysis.length === 0) throw new Error('No se encontraron cortes con precios válidos');
-  return { analysis, locales, periodo };
+  if(!analysis.length) throw new Error('No se encontraron cortes con precios válidos');
+  return{analysis,locales,periodo};
 }
 
-function toNum(v) {
-  if (v === null || v === undefined || v === '' || v === '-') return null;
-  const n = parseFloat(String(v).replace(/[^\d.]/g, ''));
-  return (!isNaN(n) && n > 0 && n < 1000000) ? n : null;
+function renderCarnStats(){
+  $('sc-carn').textContent=GC.analysis.length;
+  $('sl-carn').textContent=GC.locales.length;
+  $('periodo-carn').textContent=GC.periodo;
+  const best=GC.analysis.reduce((a,b)=>b.diff>a.diff?b:a);
+  $('sd-carn').textContent=fmtNum(best.diff)+' Gs';
+  $('sv-carn').textContent=best.corte;
+  $('rc-carn').textContent=GC.analysis.length+' cortes';
 }
 
-function fmtNum(n) { return n.toLocaleString('es-PY'); }
-
-function renderStats() {
-  $('statCortes').textContent  = G.analysis.length;
-  $('statLocales').textContent = G.locales.length;
-  $('periodoLabel').textContent = G.periodo;
-  const best = G.analysis.reduce((a,b)=>b.diff>a.diff?b:a);
-  $('statMaxDiff').textContent = fmtNum(Math.round(best.diff)) + ' Gs';
-  $('statVolatil').textContent = best.corte;
-  $('rowCount').textContent    = G.analysis.length + ' cortes';
-}
-
-function renderTable() {
-  $('previewBody').innerHTML = G.analysis.map(d => {
-    const m = d.missing.length ? `<span class="missing">${d.missing.join(', ')}</span>` : `<span class="all-ok">✓ todos</span>`;
-    return `<tr><td class="corte">${d.corte}</td><td><span class="pill max">↑ ${d.maxLocal}</span></td><td>${fmtNum(Math.round(d.maxPrice))}</td><td><span class="pill min">↓ ${d.minLocal}</span></td><td>${fmtNum(Math.round(d.minPrice))}</td><td>${fmtNum(Math.round(d.diff))}</td><td>${m}</td></tr>`;
+function renderCarnTable(){
+  $('pb-carn').innerHTML=GC.analysis.map(d=>{
+    const m=d.missing.length?`<span class="missing">${d.missing.join(', ')}</span>`:`<span class="all-ok">✓ todos</span>`;
+    return`<tr><td class="corte">${d.corte}</td><td><span class="pill max">↑ ${d.maxLocal}</span></td><td>${fmtNum(d.maxPrice)}</td><td><span class="pill min">↓ ${d.minLocal}</span></td><td>${fmtNum(d.minPrice)}</td><td>${fmtNum(d.diff)}</td><td>${m}</td></tr>`;
   }).join('');
 }
 
-// ── Excel generation usando Python + openpyxl (vía script embebido) ──
-function makeComment(d) {
-  const diffStr = Math.round(d.diff).toLocaleString('es-PY').replace(/,/g,'.');
-  let obs1;
-  if (d.missing.length === 0) obs1 = '1.  EL CORTE PRESENTA EXISTENCIA EN TODOS LOS LOCALES AUDITADOS.';
-  else if (d.missing.length >= G.locales.length - 1) obs1 = `1.  EL CORTE SE ENCUENTRA ÚNICAMENTE EN EL LOCAL DE ${d.maxLocal}.`;
-  else obs1 = `1.  EL CORTE NO PRESENTA EXISTENCIA EN LOS LOCALES DE ${d.missing.join(', ')}.`;
-  const obs2 = d.diff > 0
-    ? `2. SE VISUALIZA UNA DIFERENCIA EN CUANTO AL PRECIO ENTRE ${d.maxLocal} Y ${d.minLocal} DE ${diffStr} GS.`
-    : `2. EL CORTE PRESENTA UN ÚNICO PRECIO REGISTRADO DE ${Math.round(d.maxPrice).toLocaleString('es-PY').replace(/,/g,'.')} GS.`;
-  return obs1 + '\n' + obs2;
+function makeCarnComment(d){
+  const ds=Math.round(d.diff).toLocaleString('es-PY').replace(/,/g,'.');
+  let o1;
+  if(!d.missing.length) o1='1.  EL CORTE PRESENTA EXISTENCIA EN TODOS LOS LOCALES AUDITADOS.';
+  else if(d.missing.length>=GC.locales.length-1) o1=`1.  EL CORTE SE ENCUENTRA ÚNICAMENTE EN EL LOCAL DE ${d.maxLocal}.`;
+  else o1=`1.  EL CORTE NO PRESENTA EXISTENCIA EN LOS LOCALES DE ${d.missing.join(', ')}.`;
+  const o2=d.diff>0?`2. SE VISUALIZA UNA DIFERENCIA EN CUANTO AL PRECIO ENTRE ${d.maxLocal} Y ${d.minLocal} DE ${ds} GS.`
+    :`2. EL CORTE PRESENTA UN ÚNICO PRECIO REGISTRADO DE ${Math.round(d.maxPrice).toLocaleString('es-PY').replace(/,/g,'.')} GS.`;
+  return o1+'\n'+o2;
 }
 
-async function generateExcel() {
-  const btn = $('downloadBtn');
-  btn.disabled = true;
-  $('downloadBtnText').textContent = 'Generando…';
-
-  try {
-    // ── Construir el xlsx con ExcelJS desde CDN que SÍ soporta estilos ──
+async function generateCarn(){
+  const btn=$('btn-carn'); btn.disabled=true; $('btxt-carn').textContent='Generando…';
+  try{
     await loadExcelJS();
-    buildWithExcelJS();
-  } catch(err) {
-    $('downloadBtnText').textContent = 'Error: ' + err.message;
-    btn.disabled = false;
-  }
-}
-
-function loadExcelJS() {
-  return new Promise((resolve, reject) => {
-    if (window.ExcelJS) { resolve(); return; }
-    const s = document.createElement('script');
-    s.src = 'https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js';
-    s.onload = resolve;
-    s.onerror = () => reject(new Error('No se pudo cargar ExcelJS'));
-    document.head.appendChild(s);
-  });
-}
-
-async function buildWithExcelJS() {
-  const btn = $('downloadBtn');
-  const wb = new ExcelJS.Workbook();
-
-  // ── Hoja 1: Precio de Carnicerias (copiar datos originales sin formato) ──
-  const origSheetName = G.wb.SheetNames.find(n => n.toLowerCase().includes('precio de carnicer'));
-  const origRows = ExcelJS_sheetToArray(G.wb.Sheets[origSheetName]);
-  const ws1 = wb.addWorksheet(origSheetName);
-  origRows.forEach(row => ws1.addRow(row));
-
-  // ── Hoja 2: Analisis con formato completo ──
-  const ws = wb.addWorksheet('Analisis de precio Carnicerias ');
-
-  // Col widths
-  ws.getColumn(1).width = 27;
-  ws.getColumn(2).width = 22.7;
-  ws.getColumn(3).width = 17.7;
-  ws.getColumn(4).width = 13;
-  ws.getColumn(5).width = 21.9;
-  ws.getColumn(6).width = 82.4;
-
-  // ── Helpers de estilo ──
-  const fillSolid = hex => ({ type:'pattern', pattern:'solid', fgColor:{argb:'FF'+hex} });
-  const fnt = (sz=10, bold=false, color='000000', name='Arial') => ({ name, size:sz, bold, color:{argb:'FF'+color} });
-  const al  = (h='center', v='middle', wrap=true) => ({ horizontal:h, vertical:v, wrapText:wrap });
-  const border = () => ({
-    top:{style:'thin',color:{argb:'FFBFBFBF'}}, bottom:{style:'thin',color:{argb:'FFBFBFBF'}},
-    left:{style:'thin',color:{argb:'FFBFBFBF'}}, right:{style:'thin',color:{argb:'FFBFBFBF'}}
-  });
-
-  const applyCell = (cell, val, fillHex, fontCfg, alignCfg, numFmt) => {
-    cell.value = val;
-    if (fillHex) cell.fill = fillSolid(fillHex);
-    if (fontCfg) cell.font = fontCfg;
-    if (alignCfg) cell.alignment = alignCfg;
-    if (numFmt) cell.numFmt = numFmt;
-  };
-
-  // ── Filas 1–4 vacías ──
-  for (let r = 1; r <= 4; r++) { ws.addRow([]); ws.getRow(r).height = 21; }
-
-  // ── Fila 5: Título ──
-  ws.getRow(5).height = 21;
-  ws.mergeCells('A5:F5');
-  applyCell(ws.getCell('A5'), G.periodo || 'ANALISIS DE PRECIOS SEGUN EL TIPO DE CORTE',
-    '0070C0', fnt(11,true,'FFFFFF'), al('center','middle',false));
-
-  // ── Fila 6: Encabezados ──
-  ws.getRow(6).height = 21;
-  const hdrs = [
-    ['CORTE','000000'],['LOCAL','000000'],['INDICADORE DE PRECIOS','000000'],
-    ['PRECIOS','FFFFFF'],['DIFERENCIA','FFFFFF'],['COMENTARIOS','000000']
-  ];
-  hdrs.forEach(([lbl,clr], i) => {
-    const cell = ws.getCell(6, i+1);
-    applyCell(cell, lbl, '2F5496', fnt(10,true,clr), al('center','middle',true));
-  });
-
-  // ── Datos ──
-  let row = 7;
-  for (const d of G.analysis) {
-    const r1 = row, r2 = row + 1;
-    ws.getRow(r1).height = 61.5;
-    ws.getRow(r2).height = 61.5;
-    ws.getRow(r2+1).height = 12;
-
-    // Col A: merged
-    ws.mergeCells(r1,1,r2,1);
-    applyCell(ws.getCell(r1,1), d.corte, 'D9E2F3', fnt(10,true,'3A3838'), al('center','middle',true));
-
-    // MAX row
-    applyCell(ws.getCell(r1,2), d.maxLocal,             '8EAADB', fnt(10,false,'3A3838'), al('center','middle',false));
-    applyCell(ws.getCell(r1,3), 'PRECIO MAXIMO',          'FF0000', fnt(10,false,'FFFFFF'), al('center','middle',false));
-    applyCell(ws.getCell(r1,4), Math.round(d.maxPrice),   '8EAADB', fnt(10,false,'3A3838'), al('center','middle',false), '#,##0');
-
-    // E: diff merged
-    ws.mergeCells(r1,5,r2,5);
-    applyCell(ws.getCell(r1,5), Math.round(d.diff), '2F5496', fnt(11,false,'FFFFFF','Calibri'), al('center','middle',true), '#,##0');
-
-    // F: comment merged
-    ws.mergeCells(r1,6,r2,6);
-    applyCell(ws.getCell(r1,6), makeComment(d), 'D9E2F3', fnt(10,true,'3A3838'), al('left','middle',true));
-
-    // MIN row
-    applyCell(ws.getCell(r2,2), d.minLocal,             'B4C6E7', fnt(10,false,'3A3838'), al('center','middle',false));
-    applyCell(ws.getCell(r2,3), 'PRECIO MINIMO',          'FFFF00', fnt(10,false,'3A3838'), al('center','middle',false));
-    applyCell(ws.getCell(r2,4), Math.round(d.minPrice),   'B4C6E7', fnt(10,false,'3A3838'), al('center','middle',false), '#,##0');
-
-    row += 3;
-  }
-
-  // ── Observaciones ──
-  ws.getRow(row).height = 39;
-  applyCell(ws.getCell(row,1), 'OBSERVACIONES: ', null, fnt(10,true,'2F5496'), al('left','middle',true));
-
-  const solos = G.analysis.filter(d => d.missing.length >= G.locales.length - 1);
-  if (solos.length) {
-    ws.getRow(row+1).height = 60;
-    ws.mergeCells(row+1,1,row+1,6);
-    const obsText = solos.map(d => `EL CORTE ${d.corte.toUpperCase()} SE ENCUENTRA ÚNICAMENTE EN EL LOCAL DE ${d.maxLocal}.`).join(' ');
-    applyCell(ws.getCell(row+1,1), obsText, null, fnt(10,true,'FF0000'), al('left','top',true));
-  }
-
-  // ── Download ──
-  const buf = await wb.xlsx.writeBuffer();
-  const blob = new Blob([buf], { type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url; a.download = G.fileName; a.click();
-  URL.revokeObjectURL(url);
-
-  $('downloadBtnText').textContent = '✓ Descargado con formato completo';
-  setTimeout(() => {
-    $('downloadBtnText').textContent = 'Generar y descargar Excel con formato del informe';
-    $('downloadBtn').disabled = false;
-  }, 3000);
-}
-
-function ExcelJS_sheetToArray(ws) {
-  const range = XLSX.utils.decode_range(ws['!ref'] || 'A1:A1');
-  const rows = [];
-  for (let r = range.s.r; r <= range.e.r; r++) {
-    const row = [];
-    for (let c = range.s.c; c <= range.e.c; c++) {
-      const cell = ws[XLSX.utils.encode_cell({r,c})];
-      row.push(cell ? cell.v : null);
+    const wb=new ExcelJS.Workbook();
+    // Hoja 1: precio original
+    const origSN=GC.wb.SheetNames.find(n=>n.toLowerCase().includes('precio de carnicer'));
+    const ws1=wb.addWorksheet(origSN);
+    sheetToArray(GC.wb.Sheets[origSN]).forEach(r=>ws1.addRow(r));
+    // Hoja 2: análisis con formato
+    const ws=wb.addWorksheet('Analisis de precio Carnicerias ');
+    ws.getColumn(1).width=27; ws.getColumn(2).width=22.7; ws.getColumn(3).width=17.7;
+    ws.getColumn(4).width=13; ws.getColumn(5).width=21.9; ws.getColumn(6).width=82.4;
+    for(let r=1;r<=4;r++){ws.addRow([]);ws.getRow(r).height=21;}
+    ws.getRow(5).height=21; ws.mergeCells('A5:F5');
+    applyCell(ws.getCell('A5'),GC.periodo||'ANALISIS DE PRECIOS SEGUN EL TIPO DE CORTE','0070C0',exFont(11,true,'FFFFFF'),exAlign('center','middle',false));
+    ws.getRow(6).height=21;
+    [['CORTE','000000'],['LOCAL','000000'],['INDICADORE DE PRECIOS','000000'],['PRECIOS','FFFFFF'],['DIFERENCIA','FFFFFF'],['COMENTARIOS','000000']].forEach(([l,c],i)=>{
+      applyCell(ws.getCell(6,i+1),l,'2F5496',exFont(10,true,c),exAlign('center','middle',true));
+    });
+    let row=7;
+    for(const d of GC.analysis){
+      const r1=row,r2=row+1;
+      ws.getRow(r1).height=61.5; ws.getRow(r2).height=61.5; ws.getRow(r2+1).height=12;
+      ws.mergeCells(r1,1,r2,1);
+      applyCell(ws.getCell(r1,1),d.corte,'D9E2F3',exFont(10,true,'3A3838'),exAlign('center','middle',true));
+      applyCell(ws.getCell(r1,2),d.maxLocal,'8EAADB',exFont(10,false,'3A3838'),exAlign('center','middle',false));
+      applyCell(ws.getCell(r1,3),'PRECIO MAXIMO','FF0000',exFont(10,false,'FFFFFF'),exAlign('center','middle',false));
+      applyCell(ws.getCell(r1,4),Math.round(d.maxPrice),'8EAADB',exFont(10,false,'3A3838'),exAlign('center','middle',false),'#,##0');
+      ws.mergeCells(r1,5,r2,5);
+      applyCell(ws.getCell(r1,5),Math.round(d.diff),'2F5496',exFont(11,false,'FFFFFF','Calibri'),exAlign('center','middle',true),'#,##0');
+      ws.mergeCells(r1,6,r2,6);
+      applyCell(ws.getCell(r1,6),makeCarnComment(d),'D9E2F3',exFont(10,true,'3A3838'),exAlign('left','middle',true));
+      applyCell(ws.getCell(r2,2),d.minLocal,'B4C6E7',exFont(10,false,'3A3838'),exAlign('center','middle',false));
+      applyCell(ws.getCell(r2,3),'PRECIO MINIMO','FFFF00',exFont(10,false,'3A3838'),exAlign('center','middle',false));
+      applyCell(ws.getCell(r2,4),Math.round(d.minPrice),'B4C6E7',exFont(10,false,'3A3838'),exAlign('center','middle',false),'#,##0');
+      row+=3;
     }
-    rows.push(row);
+    ws.getRow(row).height=39;
+    applyCell(ws.getCell(row,1),'OBSERVACIONES: ',null,exFont(10,true,'2F5496'),exAlign('left','middle',true));
+    const solos=GC.analysis.filter(d=>d.missing.length>=GC.locales.length-1);
+    if(solos.length){
+      ws.getRow(row+1).height=60; ws.mergeCells(row+1,1,row+1,6);
+      applyCell(ws.getCell(row+1,1),solos.map(d=>`EL CORTE ${d.corte.toUpperCase()} SE ENCUENTRA ÚNICAMENTE EN EL LOCAL DE ${d.maxLocal}.`).join(' '),null,exFont(10,true,'FF0000'),exAlign('left','top',true));
+    }
+    const buf=await wb.xlsx.writeBuffer();
+    const blob=new Blob([buf],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+    const url=URL.createObjectURL(blob); const a=document.createElement('a');
+    a.href=url; a.download=GC.fileName; a.click(); URL.revokeObjectURL(url);
+    $('btxt-carn').textContent='✓ Descargado correctamente';
+    setTimeout(()=>{$('btxt-carn').textContent='Generar y descargar Excel con formato del informe';btn.disabled=false;},3000);
+  }catch(err){$('btxt-carn').textContent='Error: '+err.message;btn.disabled=false;}
+}
+
+// ══════════════════════════════════════════════════════════════════════
+// ██████  ENVASADOS
+// ══════════════════════════════════════════════════════════════════════
+setupDrop('env', handleEnv);
+
+// Mapeo de palabras clave a nombre canónico del grupo
+const ENV_GROUPS = [
+  {key:'BIFE ANCHO',          label:'BIFE ANCHO'},
+  {key:'BIFE DE CHORIZO',     label:'BIFE DE CHORIZO'},
+  {key:'BIFE DE VACIO',       label:'BIFE DE VACÍO'},
+  {key:'BIFE DE VACÍO',       label:'BIFE DE VACÍO'},
+  {key:'COLITA CUADRIL',      label:'COLITA CUADRIL'},
+  {key:'COLITA CUADRIL PREMIUM',label:'COLITA CUADRIL'},
+  {key:'COLITA ',             label:'COLITA CUADRIL'},
+  {key:'COSTILLA',            label:'COSTILLA'},
+  {key:'CUPIM',               label:'CUPIM'},
+  {key:'ENTRECOSTILLA',       label:'ENTRECOSTILLA'},
+  {key:'LOMITO',              label:'LOMITO'},
+  {key:'PECETO',              label:'PECETO'},
+  {key:'TAPA CUADRIL',        label:'TAPA CUADRIL'},
+  {key:'TAPA DE ASADO',       label:'TAPA DE ASADO'},
+  {key:'TAPA ESPECIAL',       label:'TAPA ESPECIAL'},
+  {key:'VACIO',               label:'VACÍO'},
+  {key:'VACÍO',               label:'VACÍO'},
+  {key:'BRISCKET',            label:'BRISCKET'},
+  {key:'PICADA PARRILLERA',   label:'PICADA PARRILLERA'},
+];
+
+function getEnvGroup(corteRaw) {
+  const u = corteRaw.toUpperCase();
+  // orden importa: más específico primero
+  for(const g of ENV_GROUPS) {
+    if(u.startsWith(g.key.toUpperCase())) return g.label;
   }
-  return rows;
+  return null;
+}
+
+function getMarca(corteRaw) {
+  if(corteRaw.includes(' - ')) return corteRaw.split(' - ').slice(1).join(' - ').trim();
+  return corteRaw.trim();
+}
+
+function handleEnv(file) {
+  if(!file||!file.name.endsWith('.xlsx')){setStatus('env','El archivo debe ser .xlsx','err');return;}
+  GE.fileName=file.name.replace('.xlsx','')+'_ANALIZADO.xlsx';
+  setStatus('env','Procesando…','info');
+  $('sb-env').classList.add('pulsing');
+  const reader=new FileReader();
+  reader.onload=e=>{
+    try{
+      const wb=XLSX.read(new Uint8Array(e.target.result),{type:'array'});
+      GE.wb=wb;
+      const sn=wb.SheetNames.find(n=>n.toLowerCase().includes('precio de cortes env')||n.toLowerCase().includes('precio de corte env'));
+      if(!sn) throw new Error('No se encontró la hoja "Precio de Cortes Envasados"');
+      const r=processEnvSheet(wb.Sheets[sn]);
+      GE.groups=r.groups; GE.locales=r.locales; GE.periodo=r.periodo; GE.totalCortes=r.totalCortes;
+      $('sb-env').classList.remove('pulsing');
+      setStatus('env',`Procesado — ${GE.groups.length} grupos, ${GE.totalCortes} cortes`,'ok');
+      renderEnvStats(); renderEnvTable();
+      show('stats-env'); show('preview-env'); show('dl-env');
+    }catch(err){
+      $('sb-env').classList.remove('pulsing');
+      setStatus('env','Error: '+err.message,'err');
+    }
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+function processEnvSheet(ws) {
+  const rows=XLSX.utils.sheet_to_json(ws,{header:1,defval:null});
+  let periodo='',hIdx=-1,hCols={},locales=[];
+  for(let i=0;i<rows.length;i++){
+    const row=rows[i]; if(!row) continue;
+    const first=row[0]?String(row[0]).trim().toUpperCase():'';
+    if(first.includes('PRECIO DE CORTES ENV')) periodo=String(row[0]).trim();
+    if(first==='CORTE'){
+      hIdx=i;
+      row.forEach((h,idx)=>{
+        if(!h||idx===0) return;
+        const k=String(h).trim().toUpperCase();
+        if(k==='NUEVA MARCA'||k==='PRECIO DE LA MARCA NUEVA'||k==='') return;
+        hCols[k]=idx;
+        locales.push(k);
+      });
+      // keep only valid locales (not empty/nueva marca)
+      locales=locales.filter(l=>l&&l!=='NUEVA MARCA'&&!l.includes('PRECIO'));
+      break;
+    }
+  }
+  if(hIdx<0) throw new Error('No se encontró la fila de encabezado (CORTE)');
+
+  // Collect all cuts with their prices
+  const allCuts=[];
+  for(let i=hIdx+1;i<rows.length;i++){
+    const row=rows[i];
+    if(!row||!row[0]) continue;
+    const corteRaw=String(row[0]).trim();
+    if(!corteRaw||corteRaw==='CORTE') continue;
+    const grupo=getEnvGroup(corteRaw);
+    if(!grupo) continue;
+    const prices={};
+    locales.forEach(loc=>{
+      const val=toNum(row[hCols[loc]]);
+      if(val!==null) prices[loc]=val;
+    });
+    if(!Object.keys(prices).length) continue;
+    allCuts.push({corteRaw,grupo,marca:getMarca(corteRaw),prices});
+  }
+
+  // Group cuts and find max/min per group
+  const groupMap={};
+  allCuts.forEach(c=>{
+    if(!groupMap[c.grupo]) groupMap[c.grupo]=[];
+    groupMap[c.grupo].push(c);
+  });
+
+  const groups=[];
+  for(const [grupo,cuts] of Object.entries(groupMap)){
+    // All prices across all cuts and locales in this group
+    let maxPrice=-Infinity,minPrice=Infinity;
+    let maxEntry=null,minEntry=null;
+    const localesPresent=new Set();
+    cuts.forEach(c=>{
+      Object.entries(c.prices).forEach(([loc,price])=>{
+        localesPresent.add(loc);
+        if(price>maxPrice){maxPrice=price;maxEntry={...c,local:loc};}
+        if(price<minPrice){minPrice=price;minEntry={...c,local:loc};}
+      });
+    });
+    const missing=locales.filter(l=>!localesPresent.has(l));
+    groups.push({
+      grupo, cuts,
+      maxPrice, maxMarca:maxEntry.marca, maxCorte:maxEntry.corteRaw, maxLocal:maxEntry.local,
+      minPrice, minMarca:minEntry.marca, minCorte:minEntry.corteRaw, minLocal:minEntry.local,
+      diff:maxPrice-minPrice, missing, localesPresent:[...localesPresent]
+    });
+  }
+
+  return{groups,locales,periodo,totalCortes:allCuts.length};
+}
+
+function renderEnvStats(){
+  $('sc-env').textContent=GE.groups.length;
+  $('sl-env').textContent=GE.totalCortes;
+  $('periodo-env').textContent=GE.periodo;
+  const best=GE.groups.reduce((a,b)=>b.diff>a.diff?b:a);
+  $('sd-env').textContent=fmtNum(best.diff)+' Gs';
+  $('sv-env').textContent=best.grupo;
+  $('rc-env').textContent=GE.groups.length+' grupos';
+}
+
+function renderEnvTable(){
+  $('pb-env').innerHTML=GE.groups.map(g=>`
+    <tr>
+      <td><span class="pill grp">${g.grupo}</span></td>
+      <td><span class="pill max">↑ ${g.maxMarca}</span></td>
+      <td style="font-size:.62rem;max-width:140px">${g.maxCorte}</td>
+      <td>${g.maxLocal}</td>
+      <td>${fmtNum(g.maxPrice)}</td>
+      <td><span class="pill min">↓ ${g.minMarca}</span></td>
+      <td style="font-size:.62rem;max-width:140px">${g.minCorte}</td>
+      <td>${g.minLocal}</td>
+      <td>${fmtNum(g.minPrice)}</td>
+      <td><strong>${fmtNum(g.diff)}</strong></td>
+    </tr>`).join('');
+}
+
+function makeEnvComment(g){
+  const ds=Math.round(g.diff).toLocaleString('es-PY').replace(/,/g,'.');
+  let o1;
+  if(!g.missing.length) o1='1. EL CORTE PRESENTA EXISTENCIA EN TODOS LOS LOCALES.';
+  else o1=`1. OPORTUNIDAD DE CRECIMIENTO DE INGRESO DE ESTE CORTE EN LOS LOCALES: ${g.missing.join(', ')}. YA QUE NO SE CUENTA CON REGISTROS DE PRECIOS DE ESTE CORTE.`;
+  const o2=`2. SE VISUALIZA UNA DIFERENCIA EN CUANTO AL PRECIO ENTRE LOS CORTES DE ${g.maxMarca} Y ${g.minMarca} EN LOS LOCALES DE ${g.maxLocal} Y ${g.minLocal} DE ${ds} GS.`;
+  return o1+'\n'+o2;
+}
+
+async function generateEnv(){
+  const btn=$('btn-env'); btn.disabled=true; $('btxt-env').textContent='Generando…';
+  try{
+    await loadExcelJS();
+    const wb=new ExcelJS.Workbook();
+    // Hoja 1: precio original
+    const origSN=GE.wb.SheetNames.find(n=>n.toLowerCase().includes('precio de cortes env')||n.toLowerCase().includes('precio de corte env'));
+    const ws1=wb.addWorksheet(origSN);
+    sheetToArray(GE.wb.Sheets[origSN]).forEach(r=>ws1.addRow(r));
+
+    // Hoja 2: análisis envasados — 8 columnas (A..H)
+    // A=grupo, B=marca, C=tipo de corte completo, D=local, E=indicador, F=precio, G=diferencia, H=comentarios
+    const ws=wb.addWorksheet('Analisis de precio de cortes');
+    ws.getColumn(1).width=27;   // A corte/grupo
+    ws.getColumn(2).width=18.1; // B marca
+    ws.getColumn(3).width=50.3; // C tipo de corte
+    ws.getColumn(4).width=18.1; // D local
+    ws.getColumn(5).width=17.7; // E indicador
+    ws.getColumn(6).width=16.1; // F precio
+    ws.getColumn(7).width=16.9; // G diferencia
+    ws.getColumn(8).width=71.1; // H comentarios
+
+    // Filas 1-4 vacías
+    for(let r=1;r<=4;r++){ws.addRow([]);ws.getRow(r).height=21;}
+
+    // Fila 5: Título
+    ws.getRow(5).height=21; ws.mergeCells('A5:H5');
+    applyCell(ws.getCell('A5'),GE.periodo||'ANALISIS DE PRECIOS DE CORTES ENVASADOS','2F5496',exFont(10,true,'FFFFFF'),exAlign('center','middle',true));
+
+    // Fila 6: Encabezados
+    ws.getRow(6).height=21;
+    [['CORTE','000000'],['MARCA','FFFFFF'],['TIPO DE CORTE ','000000'],['LOCAL','000000'],['INDICADORE DE PRECIOS','000000'],['PRECIOS','FFFFFF'],['DIFERENCIA','FFFFFF'],['COMENTARIOS','000000']].forEach(([l,c],i)=>{
+      applyCell(ws.getCell(6,i+1),l,'2F5496',exFont(10,true,c),exAlign('center','middle',true));
+    });
+
+    let row=7;
+    for(const g of GE.groups){
+      const r1=row, r2=row+1;
+      ws.getRow(r1).height=63; ws.getRow(r2).height=63; ws.getRow(r2+1).height=12;
+
+      // Col A: grupo (merged)
+      ws.mergeCells(r1,1,r2,1);
+      applyCell(ws.getCell(r1,1),g.grupo,'D9E2F3',exFont(10,true,'3A3838'),exAlign('center','middle',true));
+
+      // MAX row
+      applyCell(ws.getCell(r1,2),g.maxMarca,      '8EAADB',exFont(10,false,'3A3838'),exAlign('center','middle',false));
+      applyCell(ws.getCell(r1,3),g.maxCorte,       '8EAADB',exFont(10,false,'3A3838'),exAlign('center','middle',true));
+      applyCell(ws.getCell(r1,4),g.maxLocal,        '8EAADB',exFont(10,false,'3A3838'),exAlign('center','middle',false));
+      applyCell(ws.getCell(r1,5),'PRECIO MAXIMO',   'FF0000',exFont(10,false,'FFFFFF'),exAlign('center','middle',false));
+      applyCell(ws.getCell(r1,6),Math.round(g.maxPrice),'8EAADB',exFont(10,false,'3A3838'),exAlign('center','middle',false),'#,##0');
+
+      // Col G: diferencia (merged)
+      ws.mergeCells(r1,7,r2,7);
+      applyCell(ws.getCell(r1,7),Math.round(g.diff),'2F5496',exFont(11,false,'FFFFFF','Calibri'),exAlign('center','middle',true),'#,##0');
+
+      // Col H: comentario (merged)
+      ws.mergeCells(r1,8,r2,8);
+      applyCell(ws.getCell(r1,8),makeEnvComment(g),'D9E2F3',exFont(10,true,'3A3838'),exAlign('left','middle',true));
+
+      // MIN row
+      applyCell(ws.getCell(r2,2),g.minMarca,      'B4C6E7',exFont(10,false,'3A3838'),exAlign('center','middle',false));
+      applyCell(ws.getCell(r2,3),g.minCorte,       'B4C6E7',exFont(10,false,'3A3838'),exAlign('center','middle',true));
+      applyCell(ws.getCell(r2,4),g.minLocal,        'B4C6E7',exFont(10,false,'3A3838'),exAlign('center','middle',false));
+      applyCell(ws.getCell(r2,5),'PRECIO MINIMO',   'FFFF00',exFont(10,false,'3A3838'),exAlign('center','middle',false));
+      applyCell(ws.getCell(r2,6),Math.round(g.minPrice),'B4C6E7',exFont(10,false,'3A3838'),exAlign('center','middle',false),'#,##0');
+
+      row+=3;
+    }
+
+    // Observaciones
+    ws.getRow(row).height=39;
+    applyCell(ws.getCell(row,1),'OBSERVACIONES: ',null,exFont(10,false,'2F5496',true),exAlign('left','middle',true));
+    // Obs text: lista de grupos con precios mínimos
+    const minBrands=[...new Set(GE.groups.map(g=>g.minMarca))];
+    const obsText=`EL CORTE DE ${GE.groups.map(g=>g.grupo).join(', ')} DE ${minBrands.join(', ')} PRESENTAN EL PRECIO MINIMO.`;
+    ws.getRow(row+1).height=60; ws.mergeCells(row+1,1,row+1,8);
+    applyCell(ws.getCell(row+1,1),obsText,null,exFont(10,true,'FF0000'),exAlign('left','middle',true));
+
+    const buf=await wb.xlsx.writeBuffer();
+    const blob=new Blob([buf],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+    const url=URL.createObjectURL(blob); const a=document.createElement('a');
+    a.href=url; a.download=GE.fileName; a.click(); URL.revokeObjectURL(url);
+    $('btxt-env').textContent='✓ Descargado correctamente';
+    setTimeout(()=>{$('btxt-env').textContent='Generar y descargar Excel con formato del informe';btn.disabled=false;},3000);
+  }catch(err){$('btxt-env').textContent='Error: '+err.message;btn.disabled=false;}
 }
 </script>
 </body>
