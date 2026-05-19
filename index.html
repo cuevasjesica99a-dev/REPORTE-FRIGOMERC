@@ -282,12 +282,27 @@ function processCarnSheet(ws) {
   const rows = XLSX.utils.sheet_to_json(ws, { header:1, defval:null });
   let periodo = '', hIdx = -1, hCols = {};
 
+  const CORTE_COL_NAMES_C = new Set(['CORTE','CADENA','TIPO DE CORTE','CORTES','DESCRIPCION','DESCRIPCIÓN','PRODUCTO','ITEM']);
+  function isNumC(v) {
+    if (v === null || v === undefined) return false;
+    const n = parseFloat(String(v).replace(/[^\d.]/g,''));
+    return !isNaN(n) && n > 0;
+  }
+
   for (let i = 0; i < rows.length; i++) {
     const row = rows[i];
     if (!row || !row[0]) continue;
     const first = String(row[0]).trim().toUpperCase();
     if (first.includes('PRECIO DE CORTES') || first.includes('PRECIO DE CARNICER')) periodo = String(row[0]).trim();
-    if (first === 'CORTE' || first === 'CADENA') {
+
+    const isKnown = CORTE_COL_NAMES_C.has(first);
+    const nonNull = row.slice(1).filter(v => v !== null && v !== undefined && String(v).trim() !== '');
+    const textCols = nonNull.filter(v => !isNumC(v) && String(v).trim() !== '-');
+    const nextRow = rows[i + 1];
+    const nextHasNums = nextRow ? nextRow.slice(1).filter(v => isNumC(v)).length >= 2 : false;
+    const isGuessed = first.length < 60 && textCols.length >= 3 && nextHasNums;
+
+    if (isKnown || isGuessed) {
       hIdx = i;
       let boxCnt = 0;
       row.forEach((h, idx) => {
@@ -300,7 +315,7 @@ function processCarnSheet(ws) {
       break;
     }
   }
-  if (hIdx < 0) throw new Error('No se encontró la fila de encabezado (CORTE o CADENA)');
+  if (hIdx < 0) throw new Error('No se encontró la fila de encabezado. Verificá que el archivo tenga una fila con los nombres de locales.');
 
   const SKIP = new Set(['BOX1','BOX2','OTRAS CARNES','PRECIO']);
   const locales = Object.keys(hCols).filter(k => !SKIP.has(k));
@@ -538,45 +553,74 @@ function processEnvSheet(ws, sheetName) {
   const rows = XLSX.utils.sheet_to_json(ws, { header:1, defval:null });
   let periodo = '', hIdx = -1, hCols = {}, locales = [];
 
+  const KNOWN_HDR = new Set(['CORTE','CADENA','TIPO DE CORTE','CORTES','DESCRIPCION','DESCRIPCIÓN','PRODUCTO','ITEM']);
+
+  function looksNumeric(v) {
+    if (v === null || v === undefined) return false;
+    const s = String(v).trim();
+    if (s === '-' || s === '') return false;
+    const n = parseFloat(s.replace(/[^\d.]/g,''));
+    return !isNaN(n) && n > 0;
+  }
+
   for (let i = 0; i < rows.length; i++) {
     const row = rows[i];
     if (!row || !row[0]) continue;
     const first = String(row[0]).trim().toUpperCase();
 
-    // Detectar periodo en cualquier celda que mencione "PRECIO DE CORTES"
-    if (first.includes('PRECIO DE CORTES') || first.includes('PRECIO DE CORTE')) {
+    // Capturar el período del informe
+    if (first.includes('PRECIO DE CORTE') || (first.includes('ENVASAD') && first.length > 15)) {
       periodo = String(row[0]).trim();
     }
 
-    // Detectar fila de encabezado: primera celda = 'CORTE'
-    if (first === 'CORTE') {
+    // ── Detectar fila de encabezado ──
+    // Estrategia 1: nombre exacto de columna conocido
+    const exactMatch = KNOWN_HDR.has(first);
+
+    // Estrategia 2: fila de textos cortos donde la siguiente tiene números
+    const otherCells = row.slice(1).filter(v => v !== null && v !== undefined && String(v).trim() !== '' && String(v).trim() !== '-');
+    const textCells  = otherCells.filter(v => !looksNumeric(v));
+    const nextRow    = (i + 1 < rows.length) ? rows[i + 1] : null;
+    const nextHasNums = nextRow ? nextRow.slice(1).filter(v => looksNumeric(v)).length >= 2 : false;
+    const guessMatch = (first.length < 60) && (textCells.length >= 2) && nextHasNums;
+
+    if (exactMatch || guessMatch) {
       hIdx = i;
-      row.forEach((h, idx) => {
-        if (idx === 0 || !h) return;
+      row.forEach((h, colIdx) => {
+        if (colIdx === 0 || !h) return;
         const k = String(h).trim().toUpperCase();
-        if (!k) return;
+        if (!k || k === '-') return;
         // Excluir columnas que no son locales
-        if (k === 'NUEVA MARCA' || k.includes('PRECIO') || k === '') return;
-        hCols[k] = idx;
+        if (k === 'NUEVA MARCA' || k.startsWith('PRECIO DE LA') || k === 'PRECIO') return;
+        hCols[k] = colIdx;
         locales.push(k);
       });
-      break;
+      if (locales.length > 0) break; // solo salir si encontramos locales
+      // Si no encontramos locales, seguir buscando
+      hIdx = -1; locales = []; hCols = {};
     }
   }
 
-  if (hIdx < 0) throw new Error(`No se encontró la fila de encabezado (CORTE) en la hoja "${sheetName}"`);
-  if (locales.length === 0) throw new Error('No se encontraron locales/columnas en el encabezado');
+  if (hIdx < 0) {
+    throw new Error(
+      `No se encontró la fila de encabezado en "${sheetName}". ` +
+      `Revisá que el archivo tenga una fila con los nombres de los locales (ej: BIGGIE, BOX, SUPERSEIS...)`
+    );
+  }
+  if (locales.length === 0) {
+    throw new Error('Se encontró el encabezado pero no tiene columnas de locales reconocibles.');
+  }
 
-  // Recolectar todos los cortes con sus precios
+  // ── Recolectar cortes ──
   const allCuts = [];
   for (let i = hIdx + 1; i < rows.length; i++) {
     const row = rows[i];
     if (!row || !row[0]) continue;
     const corteRaw = String(row[0]).trim();
-    if (!corteRaw || corteRaw.toUpperCase() === 'CORTE') continue;
+    if (!corteRaw || KNOWN_HDR.has(corteRaw.toUpperCase())) continue;
 
     const grupo = getEnvGroup(corteRaw);
-    if (!grupo) continue; // ignorar cortes sin grupo conocido
+    if (!grupo) continue;
 
     const prices = {};
     locales.forEach(loc => {
@@ -584,13 +628,14 @@ function processEnvSheet(ws, sheetName) {
       if (val !== null) prices[loc] = val;
     });
     if (!Object.keys(prices).length) continue;
-
     allCuts.push({ corteRaw, grupo, marca: getMarca(corteRaw), prices });
   }
 
-  if (allCuts.length === 0) throw new Error('No se encontraron cortes con precios válidos');
+  if (allCuts.length === 0) {
+    throw new Error('No se encontraron cortes con precios válidos. Verificá que el archivo tenga datos numéricos en las celdas de precios.');
+  }
 
-  // Agrupar por tipo de corte y encontrar máx/mín
+  // ── Agrupar y calcular máx/mín ──
   const groupMap = {};
   allCuts.forEach(c => {
     if (!groupMap[c.grupo]) groupMap[c.grupo] = [];
@@ -602,7 +647,6 @@ function processEnvSheet(ws, sheetName) {
     let maxPrice = -Infinity, minPrice = Infinity;
     let maxEntry = null, minEntry = null;
     const localesPresent = new Set();
-
     cuts.forEach(c => {
       Object.entries(c.prices).forEach(([loc, price]) => {
         localesPresent.add(loc);
@@ -610,20 +654,17 @@ function processEnvSheet(ws, sheetName) {
         if (price < minPrice) { minPrice = price; minEntry = { ...c, local: loc }; }
       });
     });
-
     const missing = locales.filter(l => !localesPresent.has(l));
     groups.push({
       grupo, cuts,
       maxPrice, maxMarca: maxEntry.marca, maxCorte: maxEntry.corteRaw, maxLocal: maxEntry.local,
       minPrice, minMarca: minEntry.marca, minCorte: minEntry.corteRaw, minLocal: minEntry.local,
-      diff: maxPrice - minPrice,
-      missing
+      diff: maxPrice - minPrice, missing
     });
   }
 
   return { groups, locales, periodo, totalCortes: allCuts.length };
 }
-
 function renderEnvStats() {
   $('sc-env').textContent = GE.groups.length;
   $('sl-env').textContent = GE.totalCortes;
