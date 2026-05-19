@@ -8,248 +8,64 @@
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Fraunces:ital,wght@0,300;0,600;1,300&display=swap" rel="stylesheet">
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
   :root {
-    --bg: #F5F0E8;
-    --surface: #FDFBF7;
-    --ink: #1A1209;
-    --ink-2: #5C4E35;
-    --ink-3: #9C8A6E;
-    --accent: #C84B2F;
-    --accent-light: #F4E0DB;
-    --green: #2D6A4F;
-    --green-light: #D8EDDF;
-    --gold: #B8860B;
-    --gold-light: #FDF3C8;
-    --border: #D9CEB8;
-    --border-dark: #B8A88A;
-    --max-w: 860px;
+    --bg: #F5F0E8; --surface: #FDFBF7; --ink: #1A1209; --ink-2: #5C4E35;
+    --ink-3: #9C8A6E; --accent: #C84B2F; --accent-light: #F4E0DB;
+    --green: #2D6A4F; --green-light: #D8EDDF; --gold: #B8860B; --gold-light: #FDF3C8;
+    --border: #D9CEB8; --border-dark: #B8A88A; --max-w: 860px;
   }
-
-  body {
-    background: var(--bg);
-    color: var(--ink);
-    font-family: 'DM Mono', monospace;
-    min-height: 100vh;
-    padding: 0 1rem 4rem;
-  }
-
-  /* ── Header ── */
-  header {
-    max-width: var(--max-w);
-    margin: 0 auto;
-    padding: 3rem 0 2rem;
-    border-bottom: 1px solid var(--border-dark);
-    display: flex;
-    align-items: flex-end;
-    justify-content: space-between;
-    gap: 1rem;
-  }
-  .header-left h1 {
-    font-family: 'Fraunces', serif;
-    font-weight: 600;
-    font-size: clamp(2rem, 5vw, 3rem);
-    letter-spacing: -0.02em;
-    line-height: 1;
-    color: var(--ink);
-  }
-  .header-left h1 em {
-    font-style: italic;
-    font-weight: 300;
-    color: var(--accent);
-  }
-  .header-left p {
-    margin-top: 0.5rem;
-    font-size: 0.72rem;
-    color: var(--ink-3);
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-  }
-  .badge {
-    font-size: 0.65rem;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    padding: 0.3rem 0.7rem;
-    border: 1px solid var(--border-dark);
-    color: var(--ink-2);
-    border-radius: 2px;
-    white-space: nowrap;
-  }
-
-  /* ── Main layout ── */
+  body { background: var(--bg); color: var(--ink); font-family: 'DM Mono', monospace; min-height: 100vh; padding: 0 1rem 4rem; }
+  header { max-width: var(--max-w); margin: 0 auto; padding: 3rem 0 2rem; border-bottom: 1px solid var(--border-dark); display: flex; align-items: flex-end; justify-content: space-between; gap: 1rem; }
+  .header-left h1 { font-family: 'Fraunces', serif; font-weight: 600; font-size: clamp(2rem, 5vw, 3rem); letter-spacing: -0.02em; line-height: 1; }
+  .header-left h1 em { font-style: italic; font-weight: 300; color: var(--accent); }
+  .header-left p { margin-top: 0.5rem; font-size: 0.72rem; color: var(--ink-3); letter-spacing: 0.08em; text-transform: uppercase; }
+  .badge { font-size: 0.65rem; letter-spacing: 0.1em; text-transform: uppercase; padding: 0.3rem 0.7rem; border: 1px solid var(--border-dark); color: var(--ink-2); border-radius: 2px; white-space: nowrap; }
   main { max-width: var(--max-w); margin: 0 auto; }
-
-  /* ── Upload zone ── */
   .upload-section { padding: 2.5rem 0 2rem; }
-
-  .drop-zone {
-    border: 1.5px dashed var(--border-dark);
-    border-radius: 4px;
-    background: var(--surface);
-    padding: 3.5rem 2rem;
-    text-align: center;
-    cursor: pointer;
-    transition: border-color 0.2s, background 0.2s;
-    position: relative;
-  }
-  .drop-zone:hover, .drop-zone.drag-over {
-    border-color: var(--accent);
-    background: #FDF9F5;
-  }
-  .drop-zone input[type="file"] {
-    position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%;
-  }
-  .drop-icon {
-    width: 48px; height: 48px;
-    margin: 0 auto 1rem;
-    border: 1.5px solid var(--border-dark);
-    border-radius: 3px;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 1.4rem;
-    background: var(--bg);
-    transition: border-color 0.2s;
-  }
-  .drop-zone:hover .drop-icon { border-color: var(--accent); }
-  .drop-title {
-    font-family: 'Fraunces', serif;
-    font-size: 1.1rem;
-    font-weight: 600;
-    margin-bottom: 0.4rem;
-  }
+  .drop-zone { border: 1.5px dashed var(--border-dark); border-radius: 4px; background: var(--surface); padding: 3.5rem 2rem; text-align: center; cursor: pointer; transition: border-color 0.2s, background 0.2s; position: relative; }
+  .drop-zone:hover, .drop-zone.drag-over { border-color: var(--accent); background: #FDF9F5; }
+  .drop-zone input[type="file"] { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
+  .drop-icon { width: 48px; height: 48px; margin: 0 auto 1rem; border: 1.5px solid var(--border-dark); border-radius: 3px; display: flex; align-items: center; justify-content: center; font-size: 1.4rem; background: var(--bg); }
+  .drop-title { font-family: 'Fraunces', serif; font-size: 1.1rem; font-weight: 600; margin-bottom: 0.4rem; }
   .drop-sub { font-size: 0.72rem; color: var(--ink-3); letter-spacing: 0.05em; }
-
-  /* ── Status bar ── */
-  .status-bar {
-    display: none;
-    margin-top: 1rem;
-    padding: 0.75rem 1rem;
-    border-radius: 3px;
-    font-size: 0.75rem;
-    letter-spacing: 0.04em;
-    border: 1px solid;
-    display: none;
-    align-items: center;
-    gap: 0.6rem;
-  }
+  .status-bar { margin-top: 1rem; padding: 0.75rem 1rem; border-radius: 3px; font-size: 0.75rem; letter-spacing: 0.04em; border: 1px solid; display: none; align-items: center; gap: 0.6rem; }
   .status-bar.show { display: flex; }
-  .status-bar.ok    { background: var(--green-light); color: var(--green);  border-color: #A8D5B5; }
-  .status-bar.err   { background: var(--accent-light); color: var(--accent); border-color: #E8B4A8; }
-  .status-bar.info  { background: var(--gold-light); color: var(--gold);   border-color: #E8D48A; }
+  .status-bar.ok { background: var(--green-light); color: var(--green); border-color: #A8D5B5; }
+  .status-bar.err { background: var(--accent-light); color: var(--accent); border-color: #E8B4A8; }
+  .status-bar.info { background: var(--gold-light); color: var(--gold); border-color: #E8D48A; }
   .status-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; flex-shrink: 0; }
-
-  /* ── Section headings ── */
-  .section-label {
-    font-size: 0.65rem;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    color: var(--ink-3);
-    padding: 0.5rem 0;
-    border-top: 1px solid var(--border);
-    margin-bottom: 1rem;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-  }
+  .section-label { font-size: 0.65rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-3); padding: 0.5rem 0; border-top: 1px solid var(--border); margin-bottom: 1rem; display: flex; align-items: center; justify-content: space-between; }
   .section-label span { color: var(--ink-2); }
-
-  /* ── Stats row ── */
-  .stats-row {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 1px;
-    background: var(--border);
-    border: 1px solid var(--border);
-    border-radius: 3px;
-    overflow: hidden;
-    margin-bottom: 2rem;
-  }
-  .stat-card {
-    background: var(--surface);
-    padding: 1rem 1.1rem;
-  }
+  .stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px; background: var(--border); border: 1px solid var(--border); border-radius: 3px; overflow: hidden; margin-bottom: 2rem; }
+  .stat-card { background: var(--surface); padding: 1rem 1.1rem; }
   .stat-label { font-size: 0.62rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-3); margin-bottom: 0.3rem; }
-  .stat-val   { font-family: 'Fraunces', serif; font-size: 1.6rem; font-weight: 600; color: var(--ink); line-height: 1; }
+  .stat-val { font-family: 'Fraunces', serif; font-size: 1.6rem; font-weight: 600; color: var(--ink); line-height: 1; }
   .stat-val.red { color: var(--accent); }
-  .stat-val.grn { color: var(--green); }
-
-  /* ── Table ── */
-  .table-wrap {
-    overflow-x: auto;
-    border: 1px solid var(--border);
-    border-radius: 3px;
-    background: var(--surface);
-    margin-bottom: 2rem;
-  }
+  .table-wrap { overflow-x: auto; border: 1px solid var(--border); border-radius: 3px; background: var(--surface); margin-bottom: 2rem; }
   table { width: 100%; border-collapse: collapse; font-size: 0.72rem; }
   thead tr { background: var(--ink); color: var(--bg); }
-  thead th {
-    padding: 0.7rem 0.85rem;
-    text-align: left;
-    font-weight: 500;
-    letter-spacing: 0.06em;
-    font-size: 0.62rem;
-    text-transform: uppercase;
-    white-space: nowrap;
-  }
-  tbody tr { border-bottom: 1px solid var(--border); transition: background 0.1s; }
+  thead th { padding: 0.7rem 0.85rem; text-align: left; font-weight: 500; letter-spacing: 0.06em; font-size: 0.62rem; text-transform: uppercase; white-space: nowrap; }
+  tbody tr { border-bottom: 1px solid var(--border); }
   tbody tr:last-child { border-bottom: none; }
   tbody tr:hover { background: #FAF6F0; }
   td { padding: 0.65rem 0.85rem; vertical-align: middle; }
-  td.corte { font-weight: 500; font-size: 0.7rem; }
-  .pill {
-    display: inline-flex; align-items: center; gap: 0.3rem;
-    font-size: 0.65rem; padding: 0.2rem 0.55rem;
-    border-radius: 2px; white-space: nowrap; font-weight: 500;
-  }
+  td.corte { font-weight: 500; }
+  .pill { display: inline-flex; align-items: center; gap: 0.3rem; font-size: 0.65rem; padding: 0.2rem 0.55rem; border-radius: 2px; white-space: nowrap; font-weight: 500; }
   .pill.max { background: var(--accent-light); color: var(--accent); }
-  .pill.min { background: var(--green-light);  color: var(--green); }
-  .diff-val { font-weight: 500; }
+  .pill.min { background: var(--green-light); color: var(--green); }
   .missing { font-size: 0.62rem; color: var(--ink-3); max-width: 200px; line-height: 1.4; }
   .all-ok { color: var(--green); font-size: 0.62rem; }
-
-  /* ── Download btn ── */
   .download-section { padding: 0.5rem 0 2rem; }
-  .btn-download {
-    display: flex; align-items: center; justify-content: center; gap: 0.7rem;
-    width: 100%;
-    padding: 1rem;
-    background: var(--ink);
-    color: var(--bg);
-    border: none;
-    border-radius: 3px;
-    font-family: 'DM Mono', monospace;
-    font-size: 0.8rem;
-    letter-spacing: 0.06em;
-    cursor: pointer;
-    transition: background 0.15s, transform 0.1s;
-  }
+  .btn-download { display: flex; align-items: center; justify-content: center; gap: 0.7rem; width: 100%; padding: 1rem; background: var(--ink); color: var(--bg); border: none; border-radius: 3px; font-family: 'DM Mono', monospace; font-size: 0.8rem; letter-spacing: 0.06em; cursor: pointer; transition: background 0.15s; }
   .btn-download:hover:not(:disabled) { background: #2D2315; }
-  .btn-download:active:not(:disabled) { transform: scale(0.99); }
   .btn-download:disabled { opacity: 0.35; cursor: not-allowed; }
-  .btn-download .arr { font-size: 1rem; transition: transform 0.2s; }
-  .btn-download:hover:not(:disabled) .arr { transform: translateY(2px); }
-
-  /* ── Footer ── */
-  footer {
-    max-width: var(--max-w); margin: 3rem auto 0;
-    padding-top: 1.5rem;
-    border-top: 1px solid var(--border);
-    font-size: 0.65rem;
-    color: var(--ink-3);
-    letter-spacing: 0.06em;
-    display: flex; justify-content: space-between;
-  }
-
-  /* ── Hidden sections ── */
   .hidden { display: none !important; }
-
-  /* ── Loading pulse ── */
+  footer { max-width: var(--max-w); margin: 3rem auto 0; padding-top: 1.5rem; border-top: 1px solid var(--border); font-size: 0.65rem; color: var(--ink-3); letter-spacing: 0.06em; display: flex; justify-content: space-between; }
   @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
   .pulsing { animation: pulse 1.2s infinite; }
 </style>
 </head>
 <body>
-
 <header>
   <div class="header-left">
     <h1>Análisis de<br><em>Precios</em></h1>
@@ -257,14 +73,9 @@
   </div>
   <div class="badge">xlsx → análisis</div>
 </header>
-
 <main>
-
-  <!-- Upload -->
   <section class="upload-section">
-    <div class="section-label">
-      <span>01 — Cargar archivo</span>
-    </div>
+    <div class="section-label"><span>01 — Cargar archivo</span></div>
     <div class="drop-zone" id="dropZone">
       <input type="file" id="fileInput" accept=".xlsx">
       <div class="drop-icon">📂</div>
@@ -276,70 +87,33 @@
       <span id="statusMsg"></span>
     </div>
   </section>
-
-  <!-- Stats -->
   <section id="statsSection" class="hidden">
-    <div class="section-label">
-      <span>02 — Resumen</span>
-      <span id="periodoLabel"></span>
-    </div>
+    <div class="section-label"><span>02 — Resumen</span><span id="periodoLabel"></span></div>
     <div class="stats-row">
-      <div class="stat-card">
-        <div class="stat-label">Cortes</div>
-        <div class="stat-val" id="statCortes">—</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-label">Locales</div>
-        <div class="stat-val" id="statLocales">—</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-label">Mayor dif.</div>
-        <div class="stat-val red" id="statMaxDiff">—</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-label">Corte volátil</div>
-        <div class="stat-val red" id="statVolatil" style="font-size:0.85rem; padding-top:0.3rem;">—</div>
-      </div>
+      <div class="stat-card"><div class="stat-label">Cortes</div><div class="stat-val" id="statCortes">—</div></div>
+      <div class="stat-card"><div class="stat-label">Locales</div><div class="stat-val" id="statLocales">—</div></div>
+      <div class="stat-card"><div class="stat-label">Mayor dif.</div><div class="stat-val red" id="statMaxDiff">—</div></div>
+      <div class="stat-card"><div class="stat-label">Corte volátil</div><div class="stat-val red" id="statVolatil" style="font-size:0.85rem;padding-top:0.3rem">—</div></div>
     </div>
   </section>
-
-  <!-- Preview table -->
   <section id="previewSection" class="hidden">
-    <div class="section-label">
-      <span>03 — Vista previa del análisis</span>
-      <span id="rowCount"></span>
-    </div>
+    <div class="section-label"><span>03 — Vista previa</span><span id="rowCount"></span></div>
     <div class="table-wrap">
       <table>
-        <thead>
-          <tr>
-            <th>Corte</th>
-            <th>Local máx.</th>
-            <th>Precio máx.</th>
-            <th>Local mín.</th>
-            <th>Precio mín.</th>
-            <th>Diferencia</th>
-            <th>Sin datos</th>
-          </tr>
-        </thead>
+        <thead><tr><th>Corte</th><th>Local máx.</th><th>Precio máx.</th><th>Local mín.</th><th>Precio mín.</th><th>Diferencia</th><th>Sin datos</th></tr></thead>
         <tbody id="previewBody"></tbody>
       </table>
     </div>
   </section>
-
-  <!-- Download -->
   <section id="downloadSection" class="download-section hidden">
     <div class="section-label"><span>04 — Exportar</span></div>
     <button class="btn-download" id="downloadBtn" onclick="generateExcel()">
-      <span class="arr">↓</span>
-      <span id="downloadBtnText">Generar y descargar Excel con análisis</span>
+      <span>↓</span><span id="downloadBtnText">Generar y descargar Excel con formato del informe</span>
     </button>
   </section>
-
 </main>
-
 <footer>
-  <span>Analizador Carnicerias v2.0</span>
+  <span>Analizador Carnicerias v3.0</span>
   <span>Procesamiento local — ningún dato sale de tu equipo</span>
 </footer>
 
@@ -347,7 +121,7 @@
 // ── State ──────────────────────────────────────────────────────────────────
 let G = { wb: null, analysis: [], locales: [], fileName: '', periodo: '' };
 
-// ── DOM helpers ────────────────────────────────────────────────────────────
+// ── DOM ────────────────────────────────────────────────────────────────────
 const $ = id => document.getElementById(id);
 const show = id => $(id).classList.remove('hidden');
 const hide = id => $(id).classList.add('hidden');
@@ -358,20 +132,18 @@ function setStatus(msg, type) {
   $('statusMsg').textContent = msg;
 }
 
-// ── Drag & drop ────────────────────────────────────────────────────────────
+// ── Upload ────────────────────────────────────────────────────────────────
 const dz = $('dropZone');
 dz.addEventListener('dragover', e => { e.preventDefault(); dz.classList.add('drag-over'); });
 dz.addEventListener('dragleave', () => dz.classList.remove('drag-over'));
 dz.addEventListener('drop', e => { e.preventDefault(); dz.classList.remove('drag-over'); handleFile(e.dataTransfer.files[0]); });
 $('fileInput').addEventListener('change', e => handleFile(e.target.files[0]));
 
-// ── File handling ──────────────────────────────────────────────────────────
 function handleFile(file) {
   if (!file || !file.name.endsWith('.xlsx')) { setStatus('El archivo debe ser .xlsx', 'err'); return; }
   G.fileName = file.name.replace('.xlsx', '') + '_ANALIZADO.xlsx';
   setStatus('Procesando…', 'info');
-  $('statusMsg').parentElement.classList.add('pulsing');
-
+  $('statusBar').classList.add('pulsing');
   const reader = new FileReader();
   reader.onload = e => {
     try {
@@ -379,21 +151,16 @@ function handleFile(file) {
       G.wb = wb;
       const sheetName = wb.SheetNames.find(n => n.toLowerCase().includes('precio de carnicer'));
       if (!sheetName) throw new Error('No se encontró la hoja "Precio de Carnicerias"');
-
       const result = processSheet(wb.Sheets[sheetName]);
       G.analysis = result.analysis;
       G.locales  = result.locales;
       G.periodo  = result.periodo;
-
-      $('statusMsg').parentElement.classList.remove('pulsing');
-      setStatus(`Archivo procesado correctamente — ${G.analysis.length} cortes encontrados`, 'ok');
-      renderStats();
-      renderTable();
-      show('statsSection');
-      show('previewSection');
-      show('downloadSection');
+      $('statusBar').classList.remove('pulsing');
+      setStatus(`Archivo procesado — ${G.analysis.length} cortes encontrados`, 'ok');
+      renderStats(); renderTable();
+      show('statsSection'); show('previewSection'); show('downloadSection');
     } catch(err) {
-      $('statusMsg').parentElement.classList.remove('pulsing');
+      $('statusBar').classList.remove('pulsing');
       setStatus('Error: ' + err.message, 'err');
     }
   };
@@ -403,19 +170,12 @@ function handleFile(file) {
 // ── Sheet processing ───────────────────────────────────────────────────────
 function processSheet(ws) {
   const rows = XLSX.utils.sheet_to_json(ws, { header: 1, defval: null });
-
-  // Detect title row (periodo)
-  let periodo = '';
-  let headerRowIdx = -1;
-  let headerCols = {};
-
+  let periodo = '', headerRowIdx = -1, headerCols = {};
   for (let i = 0; i < rows.length; i++) {
     const row = rows[i];
     if (!row) continue;
     const first = row[0] ? String(row[0]).trim().toUpperCase() : '';
-    if (first.includes('PRECIO DE CORTES') || first.includes('PRECIO DE CARNICER')) {
-      periodo = String(row[0]).trim();
-    }
+    if (first.includes('PRECIO DE CORTES') || first.includes('PRECIO DE CARNICER')) periodo = String(row[0]).trim();
     if (first === 'CORTE' || first === 'CADENA') {
       headerRowIdx = i;
       let boxCount = 0;
@@ -430,30 +190,21 @@ function processSheet(ws) {
       break;
     }
   }
-
   if (headerRowIdx < 0) throw new Error('No se encontró la fila de encabezado (CORTE / CADENA)');
-
-  // Extract locales (everything that's not CORTE/CADENA/OTRAS CARNES/PRECIO)
   const SKIP = new Set(['CORTE','CADENA','OTRAS CARNES','PRECIO','BOX1','BOX2']);
   const locales = Object.keys(headerCols).filter(k => !SKIP.has(k));
   if (headerCols['BOX1']) locales.push('BOX');
-
-  // Process data rows
   const lomo_seen = { vac: false };
   const analysis = [];
-
   for (let i = headerRowIdx + 1; i < rows.length; i++) {
     const row = rows[i];
     if (!row || !row[headerCols['CORTE']]) continue;
     let corte = String(row[headerCols['CORTE']]).trim();
     if (!corte || corte === 'nan') continue;
-
-    // Handle duplicate LOMO rows
     if (corte.toUpperCase() === 'LOMO') {
-      if (!lomo_seen.vac) { lomo_seen.vac = true; }
-      else { corte = 'LOMO DE CERDO'; }
+      if (!lomo_seen.vac) lomo_seen.vac = true;
+      else corte = 'LOMO DE CERDO';
     }
-
     const prices = {};
     locales.forEach(loc => {
       let val;
@@ -467,23 +218,12 @@ function processSheet(ws) {
       }
       if (val !== null) prices[loc] = val;
     });
-
     if (Object.keys(prices).length === 0) continue;
-
     const maxLoc = Object.keys(prices).reduce((a, b) => prices[a] > prices[b] ? a : b);
     const minLoc = Object.keys(prices).reduce((a, b) => prices[a] < prices[b] ? a : b);
     const missing = locales.filter(l => !prices[l]);
-
-    analysis.push({
-      corte,
-      maxLocal: maxLoc, maxPrice: prices[maxLoc],
-      minLocal: minLoc, minPrice: prices[minLoc],
-      diff: prices[maxLoc] - prices[minLoc],
-      missing,
-      prices
-    });
+    analysis.push({ corte, maxLocal: maxLoc, maxPrice: prices[maxLoc], minLocal: minLoc, minPrice: prices[minLoc], diff: prices[maxLoc] - prices[minLoc], missing, prices });
   }
-
   if (analysis.length === 0) throw new Error('No se encontraron cortes con precios válidos');
   return { analysis, locales, periodo };
 }
@@ -499,177 +239,177 @@ function renderStats() {
   $('statCortes').textContent  = G.analysis.length;
   $('statLocales').textContent = G.locales.length;
   $('periodoLabel').textContent = G.periodo;
-
   const maxDiffItem = G.analysis.reduce((a, b) => b.diff > a.diff ? b : a);
-  $('statMaxDiff').textContent  = fmtNum(Math.round(maxDiffItem.diff)) + ' Gs';
-  $('statVolatil').textContent  = maxDiffItem.corte;
-  $('rowCount').textContent     = G.analysis.length + ' cortes';
+  $('statMaxDiff').textContent = fmtNum(Math.round(maxDiffItem.diff)) + ' Gs';
+  $('statVolatil').textContent = maxDiffItem.corte;
+  $('rowCount').textContent    = G.analysis.length + ' cortes';
 }
 
-// ── Render table ───────────────────────────────────────────────────────────
 function renderTable() {
-  const tbody = $('previewBody');
-  tbody.innerHTML = G.analysis.map(d => {
-    const missingHtml = d.missing.length
-      ? `<span class="missing">${d.missing.join(', ')}</span>`
-      : `<span class="all-ok">✓ todos</span>`;
-    return `<tr>
-      <td class="corte">${d.corte}</td>
-      <td><span class="pill max">↑ ${d.maxLocal}</span></td>
-      <td>${fmtNum(Math.round(d.maxPrice))}</td>
-      <td><span class="pill min">↓ ${d.minLocal}</span></td>
-      <td>${fmtNum(Math.round(d.minPrice))}</td>
-      <td class="diff-val">${fmtNum(Math.round(d.diff))}</td>
-      <td>${missingHtml}</td>
-    </tr>`;
+  $('previewBody').innerHTML = G.analysis.map(d => {
+    const m = d.missing.length ? `<span class="missing">${d.missing.join(', ')}</span>` : `<span class="all-ok">✓ todos</span>`;
+    return `<tr><td class="corte">${d.corte}</td><td><span class="pill max">↑ ${d.maxLocal}</span></td><td>${fmtNum(Math.round(d.maxPrice))}</td><td><span class="pill min">↓ ${d.minLocal}</span></td><td>${fmtNum(Math.round(d.minPrice))}</td><td>${fmtNum(Math.round(d.diff))}</td><td>${m}</td></tr>`;
   }).join('');
 }
 
 function fmtNum(n) { return n.toLocaleString('es-PY'); }
 
-// ── Comment generation ─────────────────────────────────────────────────────
+// ── Comment ────────────────────────────────────────────────────────────────
 function makeComment(d) {
   const diffStr = Math.round(d.diff).toLocaleString('es-PY').replace(/,/g, '.');
   let obs1;
-  if (d.missing.length === 0) {
-    obs1 = '1.  EL CORTE PRESENTA EXISTENCIA EN TODOS LOS LOCALES AUDITADOS.';
-  } else if (d.missing.length >= G.locales.length - 1) {
-    obs1 = `1.  EL CORTE SE ENCUENTRA ÚNICAMENTE EN EL LOCAL DE ${d.maxLocal}.`;
-  } else {
-    obs1 = `1.  EL CORTE NO PRESENTA EXISTENCIA EN LOS LOCALES DE ${d.missing.join(', ')}.`;
-  }
+  if (d.missing.length === 0) obs1 = '1.  EL CORTE PRESENTA EXISTENCIA EN TODOS LOS LOCALES AUDITADOS.';
+  else if (d.missing.length >= G.locales.length - 1) obs1 = `1.  EL CORTE SE ENCUENTRA ÚNICAMENTE EN EL LOCAL DE ${d.maxLocal}.`;
+  else obs1 = `1.  EL CORTE NO PRESENTA EXISTENCIA EN LOS LOCALES DE ${d.missing.join(', ')}.`;
   const obs2 = d.diff > 0
     ? `2. SE VISUALIZA UNA DIFERENCIA EN CUANTO AL PRECIO ENTRE ${d.maxLocal} Y ${d.minLocal} DE ${diffStr} GS.`
     : `2. EL CORTE PRESENTA UN ÚNICO PRECIO REGISTRADO DE ${Math.round(d.maxPrice).toLocaleString('es-PY').replace(/,/g,'.')} GS.`;
   return obs1 + '\n' + obs2;
 }
 
-// ── Excel generation ───────────────────────────────────────────────────────
+// ── Excel generation (con formato exacto del informe original) ─────────────
 function generateExcel() {
   const btn = $('downloadBtn');
   btn.disabled = true;
   $('downloadBtnText').textContent = 'Generando…';
-
   try {
-    const wb = G.wb;
-    const sheetName = wb.SheetNames.find(n => n.toLowerCase().includes('analisis'));
-    if (!sheetName) throw new Error('No se encontró la hoja de análisis');
-
-    const ws = wb.Sheets[sheetName];
-
-    // Find header row index (row with CORTE, LOCAL, etc.)
-    const allRows = XLSX.utils.sheet_to_json(ws, { header: 1, defval: null });
-    let headerRowIdx = 5; // default row 6 (0-indexed 5)
-    for (let i = 0; i < allRows.length; i++) {
-      if (allRows[i] && String(allRows[i][0]).toUpperCase() === 'CORTE') {
-        headerRowIdx = i;
-        break;
-      }
-    }
-    const DATA_START = headerRowIdx + 1; // 0-indexed
-
-    // Clear all cells from DATA_START onwards
-    const range = XLSX.utils.decode_range(ws['!ref'] || 'A1:F100');
-    for (let r = DATA_START; r <= range.e.r; r++) {
-      for (let c = 0; c <= 6; c++) {
-        const addr = XLSX.utils.encode_cell({ r, c });
-        delete ws[addr];
-      }
-    }
-
-    // Clear merges in data area
-    if (ws['!merges']) {
-      ws['!merges'] = ws['!merges'].filter(m => m.s.r < DATA_START);
-    } else {
-      ws['!merges'] = [];
-    }
-
-    // Styles
-    const S = {
-      group:   { patternType: 'solid', fgColor: { rgb: 'D9E2F3' } },
-      maxRow:  { patternType: 'solid', fgColor: { rgb: '8EAADB' } },
-      minRow:  { patternType: 'solid', fgColor: { rgb: 'B4C6E7' } },
-      red:     { patternType: 'solid', fgColor: { rgb: 'FF0000' } },
-      yellow:  { patternType: 'solid', fgColor: { rgb: 'FFFF00' } },
-      diff:    { patternType: 'solid', fgColor: { rgb: '2F5496' } },
-      white:   { patternType: 'solid', fgColor: { rgb: 'FFFFFF' } },
+    // ── STYLES exactos del informe ──
+    const FILLS = {
+      titleBlue:  { patternType: 'solid', fgColor: { rgb: '0070C0' } },   // A5 titulo
+      headerDark: { patternType: 'solid', fgColor: { rgb: '2F5496' } },   // A6 encabezados / celda diff
+      groupLight: { patternType: 'solid', fgColor: { rgb: 'D9E2F3' } },   // col A corte + col F comentario
+      maxRow:     { patternType: 'solid', fgColor: { rgb: '8EAADB' } },   // fila MAX
+      minRow:     { patternType: 'solid', fgColor: { rgb: 'B4C6E7' } },   // fila MIN
+      red:        { patternType: 'solid', fgColor: { rgb: 'FF0000' } },   // "PRECIO MAXIMO"
+      yellow:     { patternType: 'solid', fgColor: { rgb: 'FFFF00' } },   // "PRECIO MINIMO"
+      white:      { patternType: 'solid', fgColor: { rgb: 'FFFFFF' } },   // obs label
     };
-    const F = {
-      bold11:    { name: 'Arial', sz: 11, bold: true },
-      base11:    { name: 'Arial', sz: 11 },
-      dark11:    { name: 'Arial', sz: 11, color: { rgb: '3A3838' } },
-      white11:   { name: 'Arial', sz: 11, color: { rgb: 'FFFFFF' } },
-      redBold11: { name: 'Arial', sz: 11, bold: true, color: { rgb: 'FF0000' } },
-      cal11:     { name: 'Calibri', sz: 11 },
-      calW11:    { name: 'Calibri', sz: 11, color: { rgb: 'FFFFFF' } },
-      redBold10: { name: 'Arial', sz: 10, bold: true, color: { rgb: 'FF0000' } },
+    const FONTS = {
+      arial10BoldWhite:  { name: 'Arial', sz: 10, bold: true,  color: { rgb: 'FFFFFF' } },
+      arial10BoldDark:   { name: 'Arial', sz: 10, bold: true,  color: { rgb: '3A3838' } },
+      arial10Dark:       { name: 'Arial', sz: 10, bold: false, color: { rgb: '3A3838' } },
+      arial10White:      { name: 'Arial', sz: 10, bold: false, color: { rgb: 'FFFFFF' } },
+      arial11BoldWhite:  { name: 'Arial', sz: 11, bold: true,  color: { rgb: 'FFFFFF' } },
+      arial11Bold:       { name: 'Arial', sz: 11, bold: true },
+      arial10BoldBlue:   { name: 'Arial', sz: 10, bold: false, color: { rgb: '2F5496' } },
+      arial10RedBold:    { name: 'Arial', sz: 10, bold: true,  color: { rgb: 'FF0000' } },
+      calibri11White:    { name: 'Calibri', sz: 11, color: { rgb: 'FFFFFF' } },
+      calibri11:         { name: 'Calibri', sz: 11 },
     };
-    const A = {
-      center: { horizontal: 'center', vertical: 'center', wrapText: true },
-      wrap:   { wrapText: true, vertical: 'top' },
+    const ALIGNS = {
+      centerCenter:    { horizontal: 'center', vertical: 'center', wrapText: true },
+      centerNoWrap:    { horizontal: 'center', vertical: 'center' },
+      leftCenter:      { horizontal: 'left',   vertical: 'center', wrapText: true },
+      leftTop:         { horizontal: 'left',   vertical: 'top',    wrapText: true },
     };
 
-    function setCell(r, c, val, fill, font, align) {
+    // Helper: set cell
+    function sc(ws, r, c, val, fill, font, align, numFmt) {
       const addr = XLSX.utils.encode_cell({ r, c });
       const t = typeof val === 'number' ? 'n' : 's';
-      ws[addr] = { v: val, t, s: { fill: fill || {}, font: font || {}, alignment: align || {} } };
+      const cell = { v: val, t, s: {} };
+      if (fill)   cell.s.fill = fill;
+      if (font)   cell.s.font = font;
+      if (align)  cell.s.alignment = align;
+      if (numFmt) cell.s.numFmt = numFmt;
+      ws[addr] = cell;
     }
 
-    let curRow = DATA_START;
+    // ── Crear workbook nuevo con las dos hojas ──
+    const wb_out = { SheetNames: [], Sheets: {} };
 
+    // ── HOJA 1: Precio de Carnicerias (copiar tal cual del original) ──
+    const orig_wb = G.wb;
+    const priceSheetName = orig_wb.SheetNames.find(n => n.toLowerCase().includes('precio de carnicer'));
+    wb_out.SheetNames.push(priceSheetName);
+    wb_out.Sheets[priceSheetName] = orig_wb.Sheets[priceSheetName];
+
+    // ── HOJA 2: Analisis (construida desde cero con formato exacto) ──
+    const wsA = {};
+    const ANALYSIS_SHEET = 'Analisis de precio Carnicerias ';
+    wb_out.SheetNames.push(ANALYSIS_SHEET);
+    wb_out.Sheets[ANALYSIS_SHEET] = wsA;
+
+    // Merges
+    wsA['!merges'] = [];
+
+    // Col widths exactas del original: A=27, B=22.7, C=17.7, D=~11, E=21.9, F=82.4
+    wsA['!cols'] = [
+      { wch: 27 }, { wch: 22.7 }, { wch: 17.7 }, { wch: 11 }, { wch: 21.9 }, { wch: 82.4 }
+    ];
+
+    // ── Fila 1-4: vacías (mergeadas A1:F4) ──
+    wsA['!merges'].push({ s: { r: 0, c: 0 }, e: { r: 3, c: 5 } });
+    sc(wsA, 0, 0, '', FILLS.white, FONTS.arial10BoldWhite, ALIGNS.centerCenter);
+    for (let rr = 0; rr < 4; rr++) {
+      wsA['!rows'] = wsA['!rows'] || [];
+      wsA['!rows'][rr] = { hpt: 27.75 };
+    }
+
+    // ── Fila 5: Título (A5:F5 merged) ──
+    wsA['!merges'].push({ s: { r: 4, c: 0 }, e: { r: 4, c: 5 } });
+    sc(wsA, 4, 0, G.periodo || 'ANALISIS DE PRECIOS SEGUN EL TIPO DE CORTE', FILLS.titleBlue, FONTS.arial11BoldWhite, ALIGNS.centerNoWrap);
+    wsA['!rows'] = wsA['!rows'] || [];
+    wsA['!rows'][4] = { hpt: 27.75 };
+
+    // ── Fila 6: Encabezados ──
+    const hdrs = ['CORTE','LOCAL','INDICADORE DE PRECIOS','PRECIOS','DIFERENCIA','COMENTARIOS'];
+    hdrs.forEach((h, c) => {
+      sc(wsA, 5, c, h, FILLS.headerDark, FONTS.arial10BoldWhite, ALIGNS.centerCenter);
+    });
+    wsA['!rows'][5] = { hpt: 27.75 };
+
+    // ── Datos: cada corte ocupa 2 filas + 1 fila vacía ──
+    let cr = 6; // current row (0-indexed)
     G.analysis.forEach(d => {
-      const r1 = curRow;
-      const r2 = curRow + 1;
+      const r1 = cr, r2 = cr + 1;
 
-      // Col A — corte name (merged 2 rows)
-      setCell(r1, 0, d.corte, S.group, F.bold11, A.center);
-      ws['!merges'].push({ s: { r: r1, c: 0 }, e: { r: r2, c: 0 } });
+      // Altura de filas según original (~61.5 pts)
+      wsA['!rows'][r1] = { hpt: 61.5 };
+      wsA['!rows'][r2] = { hpt: 61.5 };
+      wsA['!rows'][r2 + 1] = { hpt: 12 }; // fila vacía entre grupos
 
-      // Max row
-      setCell(r1, 1, d.maxLocal,            S.maxRow,  F.cal11,   {});
-      setCell(r1, 2, 'PRECIO MAXIMO',        S.red,     F.white11, {});
-      setCell(r1, 3, Math.round(d.maxPrice), S.maxRow,  F.cal11,   {});
+      // Col A: nombre corte (merged A r1:r2)
+      wsA['!merges'].push({ s: { r: r1, c: 0 }, e: { r: r2, c: 0 } });
+      sc(wsA, r1, 0, d.corte, FILLS.groupLight, FONTS.arial10BoldDark, ALIGNS.centerCenter);
 
-      // Col E — diff (merged, formula)
-      const diffVal = Math.round(d.maxPrice) - Math.round(d.minPrice);
-      setCell(r1, 4, diffVal, S.diff, F.calW11, A.center);
-      ws['!merges'].push({ s: { r: r1, c: 4 }, e: { r: r2, c: 4 } });
+      // Fila MAX: B=local, C=PRECIO MAXIMO, D=valor
+      sc(wsA, r1, 1, d.maxLocal,            FILLS.maxRow, FONTS.arial10Dark,  ALIGNS.centerNoWrap);
+      sc(wsA, r1, 2, 'PRECIO MAXIMO',        FILLS.red,    FONTS.arial10White, ALIGNS.centerNoWrap);
+      sc(wsA, r1, 3, Math.round(d.maxPrice), FILLS.maxRow, FONTS.arial10Dark,  ALIGNS.centerNoWrap, '#,##0');
 
-      // Col F — comment (merged)
-      setCell(r1, 5, makeComment(d), S.group, F.redBold11, A.wrap);
-      ws['!merges'].push({ s: { r: r1, c: 5 }, e: { r: r2, c: 5 } });
+      // Col E: diferencia (merged r1:r2)
+      wsA['!merges'].push({ s: { r: r1, c: 4 }, e: { r: r2, c: 4 } });
+      sc(wsA, r1, 4, Math.round(d.diff), FILLS.headerDark, FONTS.calibri11White, ALIGNS.centerCenter, '#,##0');
 
-      // Min row
-      setCell(r2, 1, d.minLocal,            S.minRow,  F.dark11, {});
-      setCell(r2, 2, 'PRECIO MINIMO',        S.yellow,  F.dark11, {});
-      setCell(r2, 3, Math.round(d.minPrice), S.minRow,  F.dark11, {});
+      // Col F: comentario (merged r1:r2)
+      wsA['!merges'].push({ s: { r: r1, c: 5 }, e: { r: r2, c: 5 } });
+      sc(wsA, r1, 5, makeComment(d), FILLS.groupLight, FONTS.arial10BoldDark, ALIGNS.leftCenter);
 
-      // Row heights
-      if (!ws['!rows']) ws['!rows'] = [];
-      ws['!rows'][r1] = { hpt: 42 };
-      ws['!rows'][r2] = { hpt: 42 };
+      // Fila MIN: B=local, C=PRECIO MINIMO, D=valor
+      sc(wsA, r2, 1, d.minLocal,            FILLS.minRow,  FONTS.arial10Dark, ALIGNS.centerNoWrap);
+      sc(wsA, r2, 2, 'PRECIO MINIMO',        FILLS.yellow,  FONTS.arial10Dark, ALIGNS.centerNoWrap);
+      sc(wsA, r2, 3, Math.round(d.minPrice), FILLS.minRow,  FONTS.arial10Dark, ALIGNS.centerNoWrap, '#,##0');
 
-      curRow += 3;
+      cr += 3;
     });
 
-    // Observations
-    const obsRow = curRow;
-    setCell(obsRow, 0, 'OBSERVACIONES: ', S.white, F.redBold10, {});
-
-    // Detect solo-price cortes for observations
+    // ── Fila OBSERVACIONES ──
+    wsA['!rows'][cr] = { hpt: 39 };
+    sc(wsA, cr, 0, 'OBSERVACIONES: ', null, FONTS.arial10BoldBlue, ALIGNS.leftCenter);
+    wsA['!rows'][cr + 1] = { hpt: 187.5 };
     const solos = G.analysis.filter(d => d.missing.length >= G.locales.length - 1);
-    if (solos.length) {
-      const obsText = solos.map(d =>
-        `EL CORTE ${d.corte.toUpperCase()} SE ENCUENTRA ÚNICAMENTE EN EL LOCAL DE ${d.maxLocal}.`
-      ).join(' ');
-      setCell(obsRow + 1, 0, obsText, {}, F.base11, { wrapText: true });
-    }
+    const obsText = solos.length
+      ? solos.map(d => `EL CORTE ${d.corte.toUpperCase()} SE ENCUENTRA ÚNICAMENTE EN EL LOCAL DE ${d.maxLocal}.`).join(' ')
+      : '';
+    wsA['!merges'].push({ s: { r: cr + 1, c: 0 }, e: { r: cr + 1, c: 5 } });
+    sc(wsA, cr + 1, 0, obsText, null, FONTS.arial10RedBold, ALIGNS.leftCenter);
 
-    // Update range
-    ws['!ref'] = XLSX.utils.encode_range({ s: { r: 0, c: 0 }, e: { r: obsRow + 2, c: 6 } });
+    // Sheet range
+    wsA['!ref'] = XLSX.utils.encode_range({ s: { r: 0, c: 0 }, e: { r: cr + 2, c: 5 } });
 
-    // Write & download
-    const buf = XLSX.write(wb, { bookType: 'xlsx', type: 'array', cellStyles: true });
+    // ── Descargar ──
+    const buf = XLSX.write(wb_out, { bookType: 'xlsx', type: 'array', cellStyles: true });
     const blob = new Blob([buf], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -678,10 +418,9 @@ function generateExcel() {
 
     $('downloadBtnText').textContent = '✓ Descargado correctamente';
     setTimeout(() => {
-      $('downloadBtnText').textContent = 'Generar y descargar Excel con análisis';
+      $('downloadBtnText').textContent = 'Generar y descargar Excel con formato del informe';
       btn.disabled = false;
     }, 3000);
-
   } catch(err) {
     $('downloadBtnText').textContent = 'Error: ' + err.message;
     btn.disabled = false;
