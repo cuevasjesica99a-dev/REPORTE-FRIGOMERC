@@ -391,6 +391,99 @@ function makeCarnComment(d) {
   return o1 + '\n' + o2;
 }
 
+// ─── Copia hoja original con formato completo (colores, anchos, merges, fuentes) ───
+function copySheetWithFormat(xlsxSheet, excelJsSheet) {
+  if (!xlsxSheet || !xlsxSheet['!ref']) return;
+  const range = XLSX.utils.decode_range(xlsxSheet['!ref']);
+
+  // Anchos de columna
+  if (xlsxSheet['!cols']) {
+    xlsxSheet['!cols'].forEach((col, i) => {
+      if (col && col.wch) excelJsSheet.getColumn(i + 1).width = col.wch;
+      else if (col && col.wpx) excelJsSheet.getColumn(i + 1).width = col.wpx / 7;
+    });
+  }
+
+  // Alturas de fila
+  if (xlsxSheet['!rows']) {
+    xlsxSheet['!rows'].forEach((row, i) => {
+      if (row && row.hpt) excelJsSheet.getRow(i + 1).height = row.hpt;
+    });
+  }
+
+  // Celdas con valores y estilos
+  for (let R = range.s.r; R <= range.e.r; R++) {
+    for (let C = range.s.c; C <= range.e.c; C++) {
+      const addr  = XLSX.utils.encode_cell({ r: R, c: C });
+      const xlCell = xlsxSheet[addr];
+      if (!xlCell) continue;
+      const ejCell = excelJsSheet.getCell(R + 1, C + 1);
+
+      // Valor
+      ejCell.value = (xlCell.t === 'n') ? xlCell.v
+                   : (xlCell.t === 'b') ? xlCell.v
+                   : (xlCell.v !== undefined && xlCell.v !== null) ? String(xlCell.v)
+                   : null;
+
+      // Estilo
+      const s = xlCell.s;
+      if (!s) continue;
+
+      // Fill
+      try {
+        if (s.fill && s.fill.fgColor) {
+          const rgb = s.fill.fgColor.rgb || (s.fill.fgColor.theme !== undefined ? null : null);
+          if (rgb && rgb !== '00000000' && rgb.length >= 6) {
+            const hex = rgb.length === 8 ? rgb.slice(2) : rgb;
+            ejCell.fill = { type:'pattern', pattern:'solid', fgColor:{ argb:'FF'+hex } };
+          }
+        }
+      } catch(e) {}
+
+      // Font
+      try {
+        if (s.font) {
+          const fc = {};
+          if (s.font.name)  fc.name  = s.font.name;
+          if (s.font.sz)    fc.size  = s.font.sz;
+          if (s.font.bold)  fc.bold  = true;
+          if (s.font.italic) fc.italic = true;
+          if (s.font.color && s.font.color.rgb) {
+            const rgb = s.font.color.rgb;
+            fc.color = { argb: rgb.length === 8 ? rgb : 'FF'+rgb };
+          }
+          if (Object.keys(fc).length) ejCell.font = fc;
+        }
+      } catch(e) {}
+
+      // Alignment
+      try {
+        if (s.alignment) {
+          ejCell.alignment = {
+            horizontal: s.alignment.horizontal || undefined,
+            vertical:   s.alignment.vertical   || undefined,
+            wrapText:   s.alignment.wrapText    || false,
+          };
+        }
+      } catch(e) {}
+
+      // Number format
+      try {
+        if (s.numFmt) ejCell.numFmt = s.numFmt;
+      } catch(e) {}
+    }
+  }
+
+  // Merges
+  if (xlsxSheet['!merges']) {
+    xlsxSheet['!merges'].forEach(m => {
+      try {
+        excelJsSheet.mergeCells(m.s.r+1, m.s.c+1, m.e.r+1, m.e.c+1);
+      } catch(e) {}
+    });
+  }
+}
+
 async function generateCarn() {
   const btn = $('btn-carn'); btn.disabled = true; $('btxt-carn').textContent = 'Cargando ExcelJS…';
   try {
@@ -399,7 +492,7 @@ async function generateCarn() {
     const wb = new ExcelJS.Workbook();
     const origSN = GC.wb.SheetNames.find(n => n.toLowerCase().includes('precio') && n.toLowerCase().includes('carnicer') && !n.toLowerCase().includes('analisis') && !n.toLowerCase().includes('copia'));
     const ws1 = wb.addWorksheet(origSN);
-    sheetToArray(GC.wb.Sheets[origSN]).forEach(r => ws1.addRow(r));
+    copySheetWithFormat(GC.wb.Sheets[origSN], ws1);
     const ws = wb.addWorksheet('Analisis de precio Carnicerias ');
     ws.getColumn(1).width=27; ws.getColumn(2).width=22.7; ws.getColumn(3).width=17.7;
     ws.getColumn(4).width=13; ws.getColumn(5).width=21.9; ws.getColumn(6).width=82.4;
@@ -695,13 +788,21 @@ function renderEnvTable() {
 
 function makeEnvComment(g) {
   const ds = Math.round(g.diff).toLocaleString('es-PY').replace(/,/g,'.');
+  const soloPrice = (g.diff === 0 || g.maxLocal === g.minLocal);
+
   let o1;
   if (!g.missing.length) {
     o1 = '1. EL CORTE PRESENTA EXISTENCIA EN TODOS LOS LOCALES.';
   } else {
     o1 = `1. OPORTUNIDAD DE CRECIMIENTO DE INGRESO DE ESTE CORTE EN LOS LOCALES: ${g.missing.join(', ')}. YA QUE NO SE CUENTA CON REGISTROS DE PRECIOS DE ESTE CORTE.`;
   }
-  const o2 = `2. SE VISUALIZA UNA DIFERENCIA EN CUANTO AL PRECIO ENTRE LOS CORTES DE ${g.maxMarca} Y ${g.minMarca} EN LOS LOCALES DE ${g.maxLocal} Y ${g.minLocal} DE ${ds} GS.`;
+
+  let o2;
+  if (soloPrice) {
+    o2 = `2. EL ÚNICO REGISTRO DE ESTE CORTE ES EN EL LOCAL DE ${g.maxLocal}.`;
+  } else {
+    o2 = `2. SE VISUALIZA UNA DIFERENCIA EN CUANTO AL PRECIO ENTRE LOS CORTES DE ${g.maxMarca} Y ${g.minMarca} EN LOS LOCALES DE ${g.maxLocal} Y ${g.minLocal} DE ${ds} GS.`;
+  }
   return o1 + '\n' + o2;
 }
 
@@ -718,7 +819,7 @@ async function generateEnv() {
       return l.includes('envasad') && !l.includes('analisis') && !l.includes('copia') && !l.includes('análisis');
     }) || GE.wb.SheetNames.find(n => n.toLowerCase().includes('precio') && !n.toLowerCase().includes('analisis') && !n.toLowerCase().includes('copia'));
     const ws1 = wb.addWorksheet(origSN);
-    sheetToArray(GE.wb.Sheets[origSN]).forEach(r => ws1.addRow(r));
+    copySheetWithFormat(GE.wb.Sheets[origSN], ws1);
 
     // Hoja 2: análisis — 8 columnas (A=grupo, B=marca, C=corte, D=local, E=indicador, F=precio, G=diff, H=comentario)
     const ws = wb.addWorksheet('Analisis de precio de cortes');
@@ -773,12 +874,20 @@ async function generateEnv() {
       ws.mergeCells(r1,8,r2,8);
       applyCell(ws.getCell(r1,8), makeEnvComment(g), 'D9E2F3', exFont(10,true,'3A3838'), exAlign('left','middle',true));
 
-      // MIN row (fila r2)
-      applyCell(ws.getCell(r2,2), g.minMarca,              'B4C6E7', exFont(10,false,'3A3838'), exAlign('center','middle',false));
-      applyCell(ws.getCell(r2,3), g.minCorte,               'B4C6E7', exFont(10,false,'3A3838'), exAlign('center','middle',true));
-      applyCell(ws.getCell(r2,4), g.minLocal,                'B4C6E7', exFont(10,false,'3A3838'), exAlign('center','middle',false));
-      applyCell(ws.getCell(r2,5), 'PRECIO MINIMO',           'FFFF00', exFont(10,false,'3A3838'), exAlign('center','middle',false));
-      applyCell(ws.getCell(r2,6), Math.round(g.minPrice),    'B4C6E7', exFont(10,false,'3A3838'), exAlign('center','middle',false), '#,##0');
+      // MIN row (fila r2) — vacía si hay un único precio
+      const soloEnv = (g.diff === 0 || g.maxLocal === g.minLocal);
+      if (!soloEnv) {
+        applyCell(ws.getCell(r2,2), g.minMarca,           'B4C6E7', exFont(10,false,'3A3838'), exAlign('center','middle',false));
+        applyCell(ws.getCell(r2,3), g.minCorte,            'B4C6E7', exFont(10,false,'3A3838'), exAlign('center','middle',true));
+        applyCell(ws.getCell(r2,4), g.minLocal,             'B4C6E7', exFont(10,false,'3A3838'), exAlign('center','middle',false));
+        applyCell(ws.getCell(r2,5), 'PRECIO MINIMO',        'FFFF00', exFont(10,false,'3A3838'), exAlign('center','middle',false));
+        applyCell(ws.getCell(r2,6), Math.round(g.minPrice), 'B4C6E7', exFont(10,false,'3A3838'), exAlign('center','middle',false), '#,##0');
+      } else {
+        // Solo colorear el fondo de las celdas vacías para mantener el formato visual
+        for (let col=2; col<=6; col++) {
+          ws.getCell(r2, col).fill = exFill('B4C6E7');
+        }
+      }
 
       row += 3;
     }
