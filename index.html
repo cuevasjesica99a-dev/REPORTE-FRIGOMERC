@@ -77,6 +77,7 @@ footer{max-width:var(--max-w);margin:3rem auto 0;padding-top:1.5rem;border-top:1
 <div class="tabs">
   <button class="tab-btn active" onclick="switchTab('carn',this)">🥩 Carnicerias</button>
   <button class="tab-btn" onclick="switchTab('env',this)">📦 Envasados</button>
+  <button class="tab-btn" onclick="switchTab('oferta',this)">🏷️ Ofertas Fin de Semana</button>
 </div>
 
 <main>
@@ -152,6 +153,43 @@ footer{max-width:var(--max-w);margin:3rem auto 0;padding-top:1.5rem;border-top:1
     </button>
   </div>
 </div>
+
+<!-- ══════════════ TAB OFERTAS FIN DE SEMANA ══════════════ -->
+<div class="tab-panel" id="tab-oferta">
+  <div class="section">
+    <div class="section-label"><span>01 — Cargar archivo de Ofertas</span></div>
+    <div class="drop-zone" id="dz-oferta">
+      <input type="file" id="fi-oferta" accept=".xlsx">
+      <div class="drop-icon">🏷️</div>
+      <div class="drop-title">Subí el Excel de Ofertas de Fin de Semana</div>
+      <div class="drop-sub">Debe contener la hoja de precios con las ofertas registradas · .xlsx</div>
+    </div>
+    <div class="status-bar" id="sb-oferta"><div class="status-dot"></div><span id="sm-oferta"></span></div>
+  </div>
+  <div id="stats-oferta" class="hidden">
+    <div class="section-label"><span>02 — Resumen</span><span id="periodo-oferta"></span></div>
+    <div class="stats-row">
+      <div class="stat-card"><div class="stat-label">Cortes totales</div><div class="stat-val" id="sc-oferta">—</div></div>
+      <div class="stat-card"><div class="stat-label">Con oferta</div><div class="stat-val" id="sl-oferta" style="color:var(--green)">—</div></div>
+      <div class="stat-card"><div class="stat-label">Sin oferta</div><div class="stat-val red" id="sd-oferta">—</div></div>
+      <div class="stat-card"><div class="stat-label">Locales</div><div class="stat-val" id="sv-oferta">—</div></div>
+    </div>
+  </div>
+  <div id="preview-oferta" class="hidden">
+    <div class="section-label"><span>03 — Vista previa</span><span id="rc-oferta"></span></div>
+    <div class="table-wrap">
+      <table><thead><tr><th>Corte</th><th>Local máx.</th><th>Precio máx.</th><th>Local mín.</th><th>Precio mín.</th><th>Diferencia</th><th>Locales con oferta</th><th>Sin oferta</th></tr></thead>
+      <tbody id="pb-oferta"></tbody></table>
+    </div>
+  </div>
+  <div id="dl-oferta" class="hidden">
+    <div class="section-label"><span>04 — Exportar</span></div>
+    <button class="btn-download" id="btn-oferta" onclick="generateOferta()">
+      <span>↓</span><span id="btxt-oferta">Generar y descargar Excel con análisis de ofertas</span>
+    </button>
+  </div>
+</div><!-- /tab-oferta -->
+
 
 </main>
 <footer>
@@ -909,6 +947,325 @@ async function generateEnv() {
     setTimeout(() => { $('btxt-env').textContent='Generar y descargar Excel con formato del informe'; btn.disabled=false; }, 3000);
   } catch(err) {
     $('btxt-env').textContent = 'Error: ' + err.message;
+    btn.disabled = false;
+    console.error(err);
+  }
+}
+
+// ══════════════════════════════════════════════════════════
+// ████  OFERTAS FIN DE SEMANA
+// ══════════════════════════════════════════════════════════
+setupDrop('oferta', handleOferta);
+
+const GO = { wb:null, analysis:[], locales:[], fileName:'', periodo:'' };
+
+function handleOferta(file) {
+  if (!file || !file.name.endsWith('.xlsx')) { setStatus('oferta','El archivo debe ser .xlsx','err'); return; }
+  GO.fileName = file.name.replace('.xlsx','') + '_ANALIZADO.xlsx';
+  setStatus('oferta','Procesando…','info');
+  $('sb-oferta').classList.add('pulsing');
+  const reader = new FileReader();
+  reader.onerror = () => { $('sb-oferta').classList.remove('pulsing'); setStatus('oferta','Error al leer el archivo','err'); };
+  reader.onload = e => {
+    try {
+      const wb = XLSX.read(new Uint8Array(e.target.result), { type:'array' });
+      GO.wb = wb;
+      // Buscar hoja de precios — puede llamarse "Precio de Carnicerias" o "Hoja X"
+      const sn = wb.SheetNames.find(n => {
+        const l = n.toLowerCase();
+        return (l.includes('precio') && l.includes('carnicer')) && !l.includes('analisis') && !l.includes('copia');
+      }) || wb.SheetNames.find(n => !n.toLowerCase().includes('analisis') && !n.toLowerCase().includes('copia'));
+
+      if (!sn) throw new Error('No se encontró la hoja de precios. Hojas: ' + wb.SheetNames.join(', '));
+      const r = processOfertaSheet(wb.Sheets[sn]);
+      GO.analysis = r.analysis; GO.locales = r.locales; GO.periodo = r.periodo;
+      $('sb-oferta').classList.remove('pulsing');
+      const conOferta = GO.analysis.filter(d => d.hasOffer).length;
+      setStatus('oferta', `✓ Procesado — ${GO.analysis.length} cortes (${conOferta} con oferta)`, 'ok');
+      renderOfertaStats(); renderOfertaTable();
+      show('stats-oferta'); show('preview-oferta'); show('dl-oferta');
+    } catch(err) {
+      $('sb-oferta').classList.remove('pulsing');
+      setStatus('oferta','Error: '+err.message,'err');
+      console.error(err);
+    }
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+function processOfertaSheet(ws) {
+  const rows = XLSX.utils.sheet_to_json(ws, { header:1, defval:null });
+  let periodo = '', hIdx = -1, hCols = {}, locales = [];
+
+  const KNOWN_HDR = new Set(['CORTE','CADENA','TIPO DE CORTE','CORTES','DESCRIPCION','DESCRIPCIÓN','PRODUCTO','ITEM']);
+
+  function looksNumeric(v) {
+    if (v === null || v === undefined) return false;
+    const s = String(v).trim();
+    if (s === '-' || s === '') return false;
+    const n = parseFloat(s.replace(/[^\d.]/g,''));
+    return !isNaN(n) && n > 0;
+  }
+
+  for (let i = 0; i < rows.length; i++) {
+    const row = rows[i];
+    if (!row || !row[0]) continue;
+    const first = String(row[0]).trim().toUpperCase();
+
+    if (first.includes('PRECIO') || first.includes('OFERTA') || first.includes('SEMANA')) {
+      if (String(row[0]).length > 8) periodo = String(row[0]).trim();
+    }
+
+    const exactMatch = KNOWN_HDR.has(first);
+    const otherCells = row.slice(1).filter(v => v !== null && v !== undefined && String(v).trim() !== '' && String(v).trim() !== '-');
+    const textCells  = otherCells.filter(v => !looksNumeric(v));
+    const nextRow    = (i + 1 < rows.length) ? rows[i + 1] : null;
+    const nextHasNums = nextRow ? nextRow.slice(1).filter(v => looksNumeric(v)).length >= 1 : false;
+    const guessMatch = (first.length < 60) && (textCells.length >= 2) && nextHasNums;
+
+    if (exactMatch || guessMatch) {
+      hIdx = i;
+      row.forEach((h, colIdx) => {
+        if (colIdx === 0 || !h) return;
+        const k = String(h).trim().toUpperCase();
+        if (!k || k === '-' || k === 'OTRAS CARNES' || k === 'PRECIO') return;
+        hCols[k] = colIdx;
+        locales.push(k);
+      });
+      if (locales.length > 0) break;
+      hIdx = -1; locales = []; hCols = {};
+    }
+  }
+
+  if (hIdx < 0) throw new Error('No se encontró la fila de encabezado. Verificá el formato del archivo.');
+  if (locales.length === 0) throw new Error('No se encontraron columnas de locales en el encabezado.');
+
+  const analysis = [];
+  for (let i = hIdx + 1; i < rows.length; i++) {
+    const row = rows[i];
+    if (!row || !row[0]) continue;
+    let corte = String(row[0]).trim();
+    if (!corte || KNOWN_HDR.has(corte.toUpperCase())) continue;
+
+    // Recolectar precios de oferta por local
+    const prices = {};
+    locales.forEach(loc => {
+      const val = toNum(row[hCols[loc]]);
+      if (val !== null) prices[loc] = val;
+    });
+
+    const localesConOferta   = Object.keys(prices);
+    const localesSinOferta   = locales.filter(l => !prices[l]);
+    const hasOffer           = localesConOferta.length > 0;
+
+    if (!hasOffer) {
+      analysis.push({ corte, hasOffer:false, maxLocal:'', maxPrice:null, minLocal:'', minPrice:null, diff:0, localesConOferta:[], localesSinOferta });
+      continue;
+    }
+
+    const maxL = localesConOferta.reduce((a,b) => prices[a] > prices[b] ? a : b);
+    const minL = localesConOferta.reduce((a,b) => prices[a] < prices[b] ? a : b);
+    analysis.push({
+      corte, hasOffer:true,
+      maxLocal:maxL, maxPrice:prices[maxL],
+      minLocal:minL, minPrice:prices[minL],
+      diff: prices[maxL] - prices[minL],
+      localesConOferta, localesSinOferta
+    });
+  }
+
+  if (analysis.length === 0) throw new Error('No se encontraron cortes en el archivo.');
+  return { analysis, locales, periodo };
+}
+
+function renderOfertaStats() {
+  const conOferta  = GO.analysis.filter(d => d.hasOffer).length;
+  const sinOferta  = GO.analysis.filter(d => !d.hasOffer).length;
+  $('sc-oferta').textContent  = GO.analysis.length;
+  $('sl-oferta').textContent  = conOferta;
+  $('sd-oferta').textContent  = sinOferta;
+  $('sv-oferta').textContent  = GO.locales.length;
+  $('periodo-oferta').textContent = GO.periodo;
+  $('rc-oferta').textContent  = GO.analysis.length + ' cortes';
+}
+
+function renderOfertaTable() {
+  $('pb-oferta').innerHTML = GO.analysis.map(d => {
+    if (!d.hasOffer) {
+      return `<tr style="opacity:.55">
+        <td class="corte">${d.corte}</td>
+        <td colspan="4" style="font-size:.62rem;color:var(--ink-3);text-align:center">— sin oferta registrada —</td>
+        <td>—</td>
+        <td><span class="all-ok" style="color:var(--ink-3)">ninguno</span></td>
+        <td style="font-size:.6rem;color:var(--accent)">${d.localesSinOferta.join(', ')}</td>
+      </tr>`;
+    }
+    const missingHtml = d.localesSinOferta.length
+      ? `<span class="missing">${d.localesSinOferta.join(', ')}</span>`
+      : `<span class="all-ok">✓ todos</span>`;
+    return `<tr>
+      <td class="corte">${d.corte}</td>
+      <td><span class="pill max">↑ ${d.maxLocal}</span></td>
+      <td>${fmtNum(d.maxPrice)}</td>
+      <td><span class="pill min">↓ ${d.minLocal}</span></td>
+      <td>${d.diff > 0 ? fmtNum(d.minPrice) : '—'}</td>
+      <td>${d.diff > 0 ? fmtNum(d.diff) : '—'}</td>
+      <td style="font-size:.62rem">${d.localesConOferta.join(', ')}</td>
+      <td>${missingHtml}</td>
+    </tr>`;
+  }).join('');
+}
+
+function makeOfertaComment(d) {
+  // ── Caso: sin oferta registrada ──
+  if (!d.hasOffer) {
+    return '1.  NO SE REGISTRAN OFERTAS DE ESTE CORTE. ';
+  }
+
+  // ── Caso: oferta en un único local ──
+  const soloLocal = d.localesConOferta.length === 1;
+  if (soloLocal) {
+    let o1;
+    if (d.localesSinOferta.length > 0) {
+      o1 = `1.  NO SE REGISTRA OFERTAS DE ESTE CORTE EN ${d.localesSinOferta.join(', ')}.`;
+    } else {
+      o1 = '1. EN TODOS LOS LOCALES AUDITADOS SE REGISTRA OFERTAS DE ESTE CORTE.';
+    }
+    const o2 = `2. LA UNICA OFERTA REGISTRADA DE ESTE CORTE ES  EN ${d.maxLocal}.`;
+    return o1 + '\n' + o2;
+  }
+
+  // ── Caso: oferta en todos los locales ──
+  if (d.localesSinOferta.length === 0) {
+    const ds = Math.round(d.diff).toLocaleString('es-PY').replace(/,/g,'.');
+    const o1 = '1. EN TODOS LOS LOCALES AUDITADOS SE REGISTRA OFERTAS DE ESTE CORTE.';
+    const o2 = d.diff > 0
+      ? `2. SE VISUALIZA UNA DIFERENCIA EN CUANTO AL PRECIO DE OFERTA ENTRE ${d.maxLocal} Y ${d.minLocal} DE ${ds} GS.`
+      : `2. TODOS LOS LOCALES PRESENTAN EL MISMO PRECIO DE OFERTA.`;
+    return o1 + '\n' + o2;
+  }
+
+  // ── Caso: oferta en algunos locales ──
+  const ds = Math.round(d.diff).toLocaleString('es-PY').replace(/,/g,'.');
+  const o1 = `1.  NO SE REGISTRA OFERTAS DE ESTE CORTE EN ${d.localesSinOferta.join(', ')}.`;
+  const o2 = d.diff > 0
+    ? `2. SE VISUALIZA UNA DIFERENCIA EN CUANTO AL PRECIO DE OFERTA ENTRE ${d.maxLocal} Y ${d.minLocal} DE ${ds} GS.`
+    : `2. LOS LOCALES QUE OFRECEN ESTE CORTE PRESENTAN EL MISMO PRECIO DE OFERTA.`;
+  return o1 + '\n' + o2;
+}
+
+async function generateOferta() {
+  const btn = $('btn-oferta'); btn.disabled = true; $('btxt-oferta').textContent = 'Cargando ExcelJS…';
+  try {
+    await loadExcelJS();
+    $('btxt-oferta').textContent = 'Generando Excel…';
+    const wb = new ExcelJS.Workbook();
+
+    // ── Hoja 1: Precio de Carnicerias original con formato ──
+    const origSN = GO.wb.SheetNames.find(n => {
+      const l = n.toLowerCase();
+      return (l.includes('precio') && l.includes('carnicer')) && !l.includes('analisis') && !l.includes('copia');
+    }) || GO.wb.SheetNames.find(n => !n.toLowerCase().includes('analisis'));
+    const ws1 = wb.addWorksheet(origSN);
+    copySheetWithFormat(GO.wb.Sheets[origSN], ws1);
+
+    // ── Hoja 2: Análisis de ofertas con formato exacto del informe ──
+    const ws = wb.addWorksheet('Analisis de precio Carnicerias ');
+    ws.getColumn(1).width = 33.6;
+    ws.getColumn(2).width = 24.9;
+    ws.getColumn(3).width = 17.7;
+    ws.getColumn(4).width = 13;
+    ws.getColumn(5).width = 21.9;
+    ws.getColumn(6).width = 82.4;
+
+    // Filas 1-4 vacías
+    for (let r = 1; r <= 4; r++) { ws.addRow([]); ws.getRow(r).height = 21; }
+
+    // Fila 5: Título
+    ws.getRow(5).height = 21;
+    ws.mergeCells('A5:F5');
+    applyCell(ws.getCell('A5'), GO.periodo || 'ANALISIS DE PRECIO OFERTAS DE FIN DE SEMANA',
+      '0070C0', exFont(11,true,'FFFFFF'), exAlign('center','middle',false));
+
+    // Fila 6: Encabezados
+    ws.getRow(6).height = 21;
+    [['CORTE','000000'],['LOCAL','000000'],['INDICADORE DE PRECIOS','000000'],['PRECIOS','FFFFFF'],['DIFERENCIA','FFFFFF'],['COMENTARIOS','000000']].forEach(([l,c],i) => {
+      applyCell(ws.getCell(6,i+1), l, '2F5496', exFont(10,true,c), exAlign('center','middle',true));
+    });
+
+    // ── Datos: un bloque por corte ──
+    let row = 7;
+    const sinOfertaList = [];
+
+    for (const d of GO.analysis) {
+      const r1 = row, r2 = row + 1;
+      ws.getRow(r1).height = 61.5;
+      ws.getRow(r2).height = 61.5;
+      ws.getRow(r2+1).height = 12;
+
+      // Col A: corte (merged)
+      ws.mergeCells(r1,1,r2,1);
+      applyCell(ws.getCell(r1,1), d.corte, 'D9E2F3', exFont(11,true,'000000'), exAlign('center','middle',true));
+
+      if (!d.hasOffer) {
+        // Sin oferta: MAX y MIN vacíos, sin local, comentario
+        sinOfertaList.push(d.corte);
+        applyCell(ws.getCell(r1,3), 'PRECIO MAXIMO', 'FF0000', exFont(10,false,'FFFFFF'), exAlign('center','middle',false));
+        applyCell(ws.getCell(r2,3), 'PRECIO MINIMO', 'FFFF00', exFont(10,false,'3A3838'), exAlign('center','middle',false));
+        ws.mergeCells(r1,5,r2,5);
+        applyCell(ws.getCell(r1,5), null, '2F5496', exFont(11,false,'FFFFFF'), exAlign('center','middle',true));
+        ws.mergeCells(r1,6,r2,6);
+        applyCell(ws.getCell(r1,6), makeOfertaComment(d), 'D9E2F3', exFont(10,true,'FF0000'), exAlign('left','middle',true));
+
+      } else if (d.localesConOferta.length === 1) {
+        // Un único local con oferta: MAX con precio, MIN vacía
+        applyCell(ws.getCell(r1,2), d.maxLocal, '8EAADB', exFont(10,false,'3A3838'), exAlign('center','middle',false));
+        applyCell(ws.getCell(r1,3), 'PRECIO MAXIMO', 'FF0000', exFont(10,false,'FFFFFF'), exAlign('center','middle',false));
+        applyCell(ws.getCell(r1,4), Math.round(d.maxPrice), '8EAADB', exFont(10,false,'3A3838'), exAlign('center','middle',false), '#,##0');
+        applyCell(ws.getCell(r2,3), 'PRECIO MINIMO', 'FFFF00', exFont(10,false,'3A3838'), exAlign('center','middle',false));
+        // MIN fila — fondo pero sin datos
+        for (let col=2; col<=4; col++) ws.getCell(r2,col).fill = exFill('B4C6E7');
+        ws.mergeCells(r1,5,r2,5);
+        applyCell(ws.getCell(r1,5), null, '2F5496', exFont(11,false,'FFFFFF','Calibri'), exAlign('center','middle',true), '#,##0');
+        ws.mergeCells(r1,6,r2,6);
+        applyCell(ws.getCell(r1,6), makeOfertaComment(d), 'D9E2F3', exFont(10,true,'FF0000'), exAlign('left','middle',true));
+
+      } else {
+        // Múltiples locales: MAX y MIN con datos
+        applyCell(ws.getCell(r1,2), d.maxLocal,            '8EAADB', exFont(10,false,'3A3838'), exAlign('center','middle',false));
+        applyCell(ws.getCell(r1,3), 'PRECIO MAXIMO',        'FF0000', exFont(10,false,'FFFFFF'), exAlign('center','middle',false));
+        applyCell(ws.getCell(r1,4), Math.round(d.maxPrice), '8EAADB', exFont(10,false,'3A3838'), exAlign('center','middle',false), '#,##0');
+        applyCell(ws.getCell(r2,2), d.minLocal,            'B4C6E7', exFont(10,false,'3A3838'), exAlign('center','middle',false));
+        applyCell(ws.getCell(r2,3), 'PRECIO MINIMO',        'FFFF00', exFont(10,false,'3A3838'), exAlign('center','middle',false));
+        applyCell(ws.getCell(r2,4), Math.round(d.minPrice), 'B4C6E7', exFont(10,false,'3A3838'), exAlign('center','middle',false), '#,##0');
+        ws.mergeCells(r1,5,r2,5);
+        applyCell(ws.getCell(r1,5), Math.round(d.diff), '2F5496', exFont(11,false,'FFFFFF','Calibri'), exAlign('center','middle',true), '#,##0');
+        ws.mergeCells(r1,6,r2,6);
+        applyCell(ws.getCell(r1,6), makeOfertaComment(d), 'D9E2F3', exFont(10,true,'FF0000'), exAlign('left','middle',true));
+      }
+
+      row += 3;
+    }
+
+    // ── Observaciones ──
+    ws.getRow(row).height = 39;
+    applyCell(ws.getCell(row,1), 'OBSERVACIONES: ', null, exFont(10,false,'2F5496'), exAlign('left','middle',true));
+    if (sinOfertaList.length > 0) {
+      ws.getRow(row+1).height = 60;
+      ws.mergeCells(row+1,1,row+1,6);
+      const obsText = `NO SE REGISTRAN OFERTAS DE ESTOS CORTES, ${sinOfertaList.join(', ')}.`;
+      applyCell(ws.getCell(row+1,1), obsText, null, exFont(10,true,'FF0000'), exAlign('left','middle',true));
+    }
+
+    // ── Descargar ──
+    const buf  = await wb.xlsx.writeBuffer();
+    const blob = new Blob([buf], {type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement('a'); a.href=url; a.download=GO.fileName; a.click(); URL.revokeObjectURL(url);
+    $('btxt-oferta').textContent = '✓ Descargado correctamente';
+    setTimeout(()=>{ $('btxt-oferta').textContent='Generar y descargar Excel con análisis de ofertas'; btn.disabled=false; }, 3000);
+  } catch(err) {
+    $('btxt-oferta').textContent = 'Error: '+err.message;
     btn.disabled = false;
     console.error(err);
   }
